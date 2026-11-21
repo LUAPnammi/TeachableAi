@@ -261,6 +261,7 @@
               <i class="fa-solid fa-robot text-brand-400 text-xs" aria-hidden="true"></i>
               <select id="active-model-select" aria-label="Choose chat model" class="w-[104px] sm:w-[156px] h-full bg-slate-950 text-white text-[11px] sm:text-xs font-semibold focus:outline-none cursor-pointer truncate">
                 <option value="" disabled selected>Choose model…</option>
+                <option value="__tara1m_reference__" style="background:#0f172a;color:#f8fafc">Tara 1.1 · pretrained reference</option>
               </select>
             </div>
             <textarea id="chat-input" rows="1" placeholder="Message your model…" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
@@ -1700,6 +1701,33 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         this.vaultDocs = [];
 
         this.initUI();
+        // Populate the chat model picker immediately; don't make Tara depend on IndexedDB restore.
+        this.taraRuntime = null;
+        this.refreshModelSelect();
+        const earlyModelSelect = document.getElementById('active-model-select');
+        if (earlyModelSelect) earlyModelSelect.addEventListener('change', (e) => {
+          if (e.target.value === '__tara1m_reference__') {
+            this.referenceMode = true;
+            document.getElementById('chat-model-title').innerText = 'Chatting with: Tara 1.1 · pretrained reference';
+            document.getElementById('side-model-name').innerText = 'Tara 1.1 Reference';
+            document.getElementById('side-engine-badge').innerText = 'Pretrained GPT-2';
+            this.showToast('Tara is selected. Download it in Models Hub if it is not ready yet.');
+            return;
+          }
+          this.referenceMode = false;
+          this.activeModelId = e.target.value;
+          const active = this.getActiveModelObj();
+          if (!active) return;
+          document.getElementById('training-text').value = active.engine.rawCorpus || '';
+          this.updateCorpusStats(); this.updateStatsDisplay();
+          this.refreshMemoryInspector(); this.renderKnowledgeFacts();
+          document.getElementById('chat-model-title').innerText = 'Chatting with: ' + active.name;
+          document.getElementById('side-model-name').innerText = active.name;
+          this.showToast('Switched to: ' + active.name);
+        });
+        this.updateTaraConnectionStatus();
+        document.getElementById('download-tara-btn')?.addEventListener('click', () => this.prepareLocalTara());
+        document.getElementById('open-tara-card-btn')?.addEventListener('click', () => window.open('https://huggingface.co/aungkomyint/tara1.1', '_blank', 'noopener'));
         this.renderCorpusLibrary('all');
         this.loadModelsFromStorage().then(() => this.initializeModels()).catch(err => {
           console.error('Model restore failed:', err);
@@ -1845,22 +1873,8 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           document.getElementById('chart-max-epoch').innerText = 'Epoch ' + e.target.value;
         });
 
-        document.getElementById('active-model-select').addEventListener('change', (e) => {
-          if(e.target.value==='__tara1m_reference__') { this.referenceMode=true; document.getElementById('chat-model-title').innerText='Chatting with: Tara 1.1 · pretrained reference'; document.getElementById('side-model-name').innerText='Tara 1.1 Reference'; document.getElementById('side-engine-badge').innerText='Pretrained GPT-2'; this.showToast(this.taraRuntime?'Tara is ready and runs locally.':'Download Tara once in Models Hub to start chatting.'); return; }
-          this.referenceMode=false; this.activeModelId = e.target.value;
-          const active = this.getActiveModelObj();
-          document.getElementById('training-text').value = active.engine.rawCorpus || '';
-          this.updateCorpusStats();
-          this.updateStatsDisplay();
-          this.refreshMemoryInspector(); this.renderKnowledgeFacts();
-          this.showToast('Switched to: ' + active.name);
-        });
-
-        // Local pretrained Tara runtime.
-        this.taraRuntime=null;
-        this.updateTaraConnectionStatus();
-        document.getElementById('download-tara-btn').addEventListener('click',()=>this.prepareLocalTara());
-        document.getElementById('open-tara-card-btn').addEventListener('click',()=>window.open('https://huggingface.co/aungkomyint/tara1.1','_blank','noopener'));
+        // Local pretrained Tara runtime controls are wired during startup so they remain usable
+        // even when restoring saved models from IndexedDB takes longer than expected.
 
         // Modals
         document.getElementById('new-model-modal-btn').addEventListener('click', () => this.openModelModal());
@@ -2774,10 +2788,13 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
       refreshModelSelect() {
         const select = document.getElementById('active-model-select');
-        select.innerHTML = this.models.map(m => `
+        const currentValue = select.value;
+        select.innerHTML = '<option value="" disabled>Choose model…</option>' + this.models.map(m => `
           <option style="background:#0f172a;color:#f8fafc" value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : (m.type === 'attention' ? 'Attention' : 'TF-IDF')})</option>
-        `).join('');
-        select.insertAdjacentHTML('beforeend', '<option value="__tara1m_reference__" style="background:#0f172a;color:#f8fafc">Tara 1.1 · pretrained reference</option>');
+        `).join('') + '<option value="__tara1m_reference__" style="background:#0f172a;color:#f8fafc">Tara 1.1 · pretrained reference</option>';
+        if (currentValue === '__tara1m_reference__') select.value = currentValue;
+        else if (this.activeModelId) select.value = this.activeModelId;
+        else if (!this.models.length) select.value = '__tara1m_reference__';
         this.renderModelsHubCards();
       }
 

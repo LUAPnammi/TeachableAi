@@ -76,13 +76,8 @@
       </div>
     </div>
 
-    <!-- Active Model Selector & Quick Actions -->
+    <!-- Quick Actions -->
     <div class="flex items-center gap-2 sm:gap-3">
-      <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs">
-        <i class="fa-solid fa-robot text-brand-400"></i>
-        <select id="active-model-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[180px] truncate"></select>
-      </div>
-
       <button id="new-model-modal-btn" title="Create New AI Model" class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow-sm">
         <i class="fa-solid fa-plus text-xs"></i>
         <span class="hidden sm:inline">New Model</span>
@@ -262,7 +257,13 @@
 
           <!-- Input Textarea + Buttons -->
           <div class="flex items-end gap-2 relative">
-            <textarea id="chat-input" rows="1" placeholder="Say hi, ask a question, or test your trained data..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
+            <div class="flex items-center gap-1.5 shrink-0 h-[42px] px-2 rounded-xl bg-slate-950 border border-slate-700 focus-within:border-brand-500" title="Choose which model replies to your messages">
+              <i class="fa-solid fa-robot text-brand-400 text-xs" aria-hidden="true"></i>
+              <select id="active-model-select" aria-label="Choose chat model" class="w-[104px] sm:w-[156px] h-full bg-slate-950 text-white text-[11px] sm:text-xs font-semibold focus:outline-none cursor-pointer truncate">
+                <option value="" disabled selected>Choose model…</option>
+              </select>
+            </div>
+            <textarea id="chat-input" rows="1" placeholder="Message your model…" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
             <button id="calculate-prompt-btn" title="Tokenize, retrieve, score and preview the answer" class="h-[42px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold shrink-0">Calculate</button>
             <button id="send-msg-btn" class="h-[42px] px-4 rounded-xl bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-medium flex items-center justify-center gap-2 transition shadow-lg shadow-brand-600/20 shrink-0">
               <i class="fa-solid fa-paper-plane text-xs"></i>
@@ -2774,9 +2775,9 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       refreshModelSelect() {
         const select = document.getElementById('active-model-select');
         select.innerHTML = this.models.map(m => `
-          <option value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : (m.type === 'attention' ? 'Attention' : 'TF-IDF')})</option>
+          <option style="background:#0f172a;color:#f8fafc" value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : (m.type === 'attention' ? 'Attention' : 'TF-IDF')})</option>
         `).join('');
-        select.insertAdjacentHTML('beforeend', '<option value="__tara1m_reference__">Tara 1.1 · pretrained reference</option>');
+        select.insertAdjacentHTML('beforeend', '<option value="__tara1m_reference__" style="background:#0f172a;color:#f8fafc">Tara 1.1 · pretrained reference</option>');
         this.renderModelsHubCards();
       }
 

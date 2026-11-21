@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Teachable AI Studio - Multi-Model Browser Engine</title>
+  <title>Teachable AI Studio v3.0 - Multi-Model Browser Engine</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,31 +41,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
-    }
-
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
     .glass-panel {
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-
-    input[type=range] {
-      accent-color: #14b8a6;
-    }
+    input[type=range] { accent-color: #14b8a6; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
@@ -82,20 +67,17 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-mono">v2.0 Multi-Model</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">v3.0 Pro</span>
         </div>
-        <p class="text-xs text-slate-400 hidden sm:block">Train & manage custom AI models directly in your browser</p>
+        <p class="text-xs text-slate-400 hidden sm:block">Zero-Dependency Browser Neural & Semantic AI Trainer</p>
       </div>
     </div>
 
-    <!-- Active Model Selector & Quick Stats -->
-    <div class="flex items-center gap-3">
-      <!-- Active Model Dropdown Picker -->
+    <!-- Active Model Selector & Quick Actions -->
+    <div class="flex items-center gap-2 sm:gap-3">
       <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs">
         <i class="fa-solid fa-robot text-brand-400"></i>
-        <select id="active-model-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[180px] truncate">
-          <!-- Populated by JS -->
-        </select>
+        <select id="active-model-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[180px] truncate"></select>
       </div>
 
       <button id="new-model-modal-btn" title="Create New AI Model" class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow-sm">
@@ -110,20 +92,24 @@
 
     <!-- Navigation Bar / Sidebar -->
     <div class="w-full md:w-64 flex md:flex-col gap-2 shrink-0 order-2 md:order-1">
-      <nav class="flex md:flex-col w-full glass-panel p-1.5 rounded-2xl border border-slate-800 gap-1">
-        <button tab-target="chat-tab" class="tab-btn active flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-white bg-brand-600/30 border border-brand-500/40">
+      <nav class="flex md:flex-col w-full glass-panel p-1.5 rounded-2xl border border-slate-800 gap-1 overflow-x-auto">
+        <button tab-target="chat-tab" class="tab-btn active flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-white bg-brand-600/30 border border-brand-500/40 shrink-0">
           <i class="fa-solid fa-comments text-brand-400 text-base"></i>
           <span>Chat Studio</span>
         </button>
-        <button tab-target="train-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent">
+        <button tab-target="train-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
           <i class="fa-solid fa-graduation-cap text-accent-400 text-base"></i>
           <span>Train Studio</span>
         </button>
-        <button tab-target="models-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent">
+        <button tab-target="library-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
+          <i class="fa-solid fa-layer-group text-pink-400 text-base"></i>
+          <span>Corpus Library</span>
+        </button>
+        <button tab-target="models-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
           <i class="fa-solid fa-cubes text-emerald-400 text-base"></i>
           <span>Models Hub</span>
         </button>
-        <button tab-target="guide-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent">
+        <button tab-target="guide-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
           <i class="fa-solid fa-book-open text-amber-400 text-base"></i>
           <span>How To Guide</span>
         </button>
@@ -133,16 +119,20 @@
       <div class="hidden md:flex flex-col gap-3 p-4 glass-panel rounded-2xl border border-slate-800 text-xs">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <span class="font-semibold text-slate-300">Active Spec</span>
-          <span id="side-engine-badge" class="px-2 py-0.5 rounded text-[10px] bg-brand-950 text-brand-300 border border-brand-800/60 font-mono">Neural MLP</span>
+          <span id="side-engine-badge" class="px-2 py-0.5 rounded text-[10px] bg-brand-950 text-brand-300 border border-brand-800/60 font-mono">Neural + Retrieval</span>
         </div>
         <div class="space-y-2 text-slate-400 font-mono">
           <div class="flex justify-between">
             <span>Model Name:</span>
-            <span id="side-model-name" class="text-white font-sans font-semibold truncate max-w-[100px]">Default AI</span>
+            <span id="side-model-name" class="text-white font-sans font-semibold truncate max-w-[110px]">Default AI</span>
           </div>
           <div class="flex justify-between">
             <span>Vocab Size:</span>
             <span id="side-vocab" class="text-slate-200">0 tokens</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Q&A Pairs:</span>
+            <span id="side-qa-count" class="text-emerald-400 font-bold">0 pairs</span>
           </div>
           <div class="flex justify-between">
             <span>Parameters:</span>
@@ -154,9 +144,9 @@
           </div>
         </div>
 
-        <div class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-slate-500 leading-relaxed">
-          <i class="fa-solid fa-shield-halved text-brand-400 mr-1"></i>
-          100% Private & Local. Runs directly on CPU/Browser GPU.
+        <div class="mt-1 pt-2 border-t border-slate-800 text-[11px] text-slate-500 leading-relaxed">
+          <i class="fa-solid fa-bolt text-amber-400 mr-1"></i>
+          Turn-Anchored Engine: Automatically aligns <code>user:</code> prompts to <code>ai:</code> answers without looping.
         </div>
       </div>
     </div>
@@ -167,7 +157,7 @@
       <!-- ================= TAB 1: CHAT STUDIO ================= -->
       <section id="chat-tab" class="tab-content flex-1 flex flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
         <!-- Chat Controls Header -->
-        <div class="px-4 py-3 border-b border-slate-800/80 bg-slate-900/50 flex flex-wrap items-center justify-between gap-3">
+        <div class="px-4 py-3 border-b border-slate-800/80 bg-slate-900/50 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
             <span class="relative flex h-2.5 w-2.5">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -176,13 +166,25 @@
             <span id="chat-model-title" class="text-xs font-semibold text-slate-200">Chatting with: Default AI</span>
           </div>
 
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Quick Test Chips -->
+            <div class="hidden lg:flex items-center gap-1 mr-2">
+              <button class="quick-prompt-chip px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">hi</button>
+              <button class="quick-prompt-chip px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">who are you</button>
+              <button class="quick-prompt-chip px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">tell me a joke</button>
+            </div>
+
             <!-- Live Learn Toggle -->
-            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800" title="Automatically absorbs your prompts into model vocabulary">
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800" title="Automatically learns from your conversation turns">
               <input type="checkbox" id="live-learn-toggle" class="sr-only peer" checked>
               <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-500 relative"></div>
               <span>Live Learn</span>
             </label>
+
+            <!-- Export Chat -->
+            <button id="export-chat-btn" title="Download chat transcript" class="text-slate-400 hover:text-slate-200 text-xs px-2.5 py-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
+              <i class="fa-solid fa-file-export"></i>
+            </button>
 
             <!-- Clear Chat -->
             <button id="clear-chat-btn" class="text-slate-400 hover:text-slate-200 text-xs px-2.5 py-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
@@ -193,18 +195,17 @@
 
         <!-- Chat History Stream -->
         <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-sm">
-          <!-- Initial Welcome Message -->
           <div class="flex gap-3 max-w-2xl">
             <div class="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 text-brand-400 flex items-center justify-center shrink-0 text-xs font-mono font-bold">
               AI
             </div>
             <div class="flex flex-col gap-1">
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
-                Hello! I am your custom JavaScript AI model.
+                Welcome to <b>Teachable AI Studio v3.0</b>! I have been pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away.
                 <br><br>
                 <span class="text-xs text-slate-400">
-                  <i class="fa-solid fa-circle-info text-brand-400 mr-1"></i>
-                  <b>Anti-Loop & Repetition Penalties</b> are enabled below. Switch to <b>Train Studio</b> to feed me starter paragraphs or custom Q&A text!
+                  <i class="fa-solid fa-sparkles text-brand-400 mr-1"></i>
+                  <b>Upgraded Engine:</b> Now uses <b>Turn-Anchored Context Conditioning</b>, <b>Top-K Nucleus Sampling</b>, and <b>TF-IDF Semantic Retrieval</b> so I stay on topic and never get stuck in <code>ai:</code> loops!
                 </span>
               </div>
             </div>
@@ -214,35 +215,43 @@
         <!-- Chat Controls Drawer & Input Bar -->
         <div class="p-3 border-t border-slate-800/80 bg-slate-900/90 flex flex-col gap-2.5">
           <!-- Sliders Bar -->
-          <div class="grid grid-cols-3 gap-3 px-1 text-[11px] text-slate-400 font-mono">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-1 text-[11px] text-slate-400 font-mono">
             <div class="flex flex-col gap-1">
               <div class="flex justify-between">
                 <span>Temp:</span>
-                <span id="temp-val" class="text-brand-400 font-bold">0.6</span>
+                <span id="temp-val" class="text-brand-400 font-bold">0.35</span>
               </div>
-              <input type="range" id="chat-temp" min="0.1" max="1.5" step="0.05" value="0.6" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <input type="range" id="chat-temp" min="0.1" max="1.5" step="0.05" value="0.35" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between">
+                <span title="Limits sampling to top K most likely tokens">Top-K:</span>
+                <span id="topk-val" class="text-emerald-400 font-bold">5</span>
+              </div>
+              <input type="range" id="chat-topk" min="1" max="25" step="1" value="5" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
             </div>
 
             <div class="flex flex-col gap-1">
               <div class="flex justify-between">
                 <span title="Prevents repetitive word looping">Rep Penalty:</span>
-                <span id="rep-val" class="text-amber-400 font-bold">1.25</span>
+                <span id="rep-val" class="text-amber-400 font-bold">1.35</span>
               </div>
-              <input type="range" id="chat-rep-penalty" min="1.0" max="2.0" step="0.05" value="1.25" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <input type="range" id="chat-rep-penalty" min="1.0" max="2.0" step="0.05" value="1.35" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
             </div>
 
             <div class="flex flex-col gap-1">
               <div class="flex justify-between">
                 <span>Max Tokens:</span>
-                <span id="max-tokens-val" class="text-accent-400 font-bold">40</span>
+                <span id="max-tokens-val" class="text-accent-400 font-bold">45</span>
               </div>
-              <input type="range" id="chat-max-tokens" min="10" max="150" step="5" value="40" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <input type="range" id="chat-max-tokens" min="10" max="150" step="5" value="45" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
             </div>
           </div>
 
           <!-- Input Textarea + Buttons -->
           <div class="flex items-end gap-2 relative">
-            <textarea id="chat-input" rows="1" placeholder="Type a prompt or question..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
+            <textarea id="chat-input" rows="1" placeholder="Say hi, ask a question, or test your trained data..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
             <button id="send-msg-btn" class="h-[42px] px-4 rounded-xl bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-medium flex items-center justify-center gap-2 transition shadow-lg shadow-brand-600/20 shrink-0">
               <i class="fa-solid fa-paper-plane text-xs"></i>
               <span class="hidden sm:inline text-xs">Send</span>
@@ -259,20 +268,19 @@
               <i class="fa-solid fa-graduation-cap text-accent-400"></i>
               Interactive Model Training Studio
             </h2>
-            <p class="text-xs text-slate-400">Train active model on custom corpora or instant starter presets</p>
+            <p class="text-xs text-slate-400">Train active model on dialogue pairs, knowledge paragraphs, or Corpus Library packs</p>
           </div>
 
-          <!-- Ready-to-use Starter Presets Dropdown -->
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400 hidden sm:inline">Load Preset:</span>
-            <select id="preset-select" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-brand-300 font-medium focus:outline-none">
-              <option value="">-- Choose Starter Text --</option>
-              <option value="assistant">🤖 Friendly Assistant Q&A</option>
-              <option value="science">🌌 Science & Space Tutor</option>
-              <option value="coder">💻 Coding & Tech Helper</option>
-              <option value="roleplay">🎭 Fantasy Roleplay</option>
-              <option value="clear">🧹 Clear Textarea</option>
-            </select>
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="open-library-shortcut-btn" class="px-2.5 py-1.5 rounded-lg bg-pink-600/20 hover:bg-pink-600/30 text-pink-300 border border-pink-500/40 text-xs font-medium flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-layer-group"></i>
+              <span>Browse Corpus Library</span>
+            </button>
+            <button id="auto-format-btn" title="Auto-clean spacing and normalize user:/ai: tags" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-wand-magic-sparkles text-brand-400"></i>
+              <span>Auto-Format</span>
+            </button>
           </div>
         </div>
 
@@ -283,11 +291,11 @@
               <input type="radio" name="engine-type" value="neural" checked class="mt-1 accent-brand-500">
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-xs text-brand-300">Neural Network (Tiny MLP)</span>
-                  <span class="text-[10px] px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300 font-mono">Backprop SGD</span>
+                  <span class="font-semibold text-xs text-brand-300">Turn-Anchored Neural MLP</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300 font-mono">Context + Q&A</span>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-snug">
-                  Learns continuous word embeddings and dense hidden layers. Watch real loss drop over training epochs.
+                  Trains embeddings with Cosine LR decay & automatic <code>ai:</code> turn anchoring + semantic fallback.
                 </p>
               </div>
             </label>
@@ -296,11 +304,11 @@
               <input type="radio" name="engine-type" value="ngram" class="mt-1 accent-brand-500">
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-xs text-slate-200">Hybrid Context N-Gram</span>
-                  <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">Instant</span>
+                  <span class="font-semibold text-xs text-slate-200">Semantic TF-IDF + N-Gram</span>
+                  <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">Instant Recall</span>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-snug">
-                  Statistical N-Gram probability matrix with direct Q&A context matching. Zero lag on large text.
+                  Matches questions via TF-IDF similarity scoring and generates fluent continuations from paragraphs.
                 </p>
               </div>
             </label>
@@ -308,12 +316,13 @@
 
           <!-- Training Text Area -->
           <div class="space-y-2">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <label for="training-text" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                 <i class="fa-solid fa-align-left text-brand-400"></i> Training Text Corpus
               </label>
               <div class="flex items-center gap-3 text-xs text-slate-400 font-mono">
-                <span id="corpus-tokens">Tokens: ~0</span>
+                <span id="corpus-stats">Tokens: 0 | Q&A Pairs: 0</span>
+                <button id="clear-corpus-btn" class="text-rose-400 hover:text-rose-300 font-sans">Clear</button>
                 <label class="cursor-pointer text-brand-400 hover:text-brand-300 flex items-center gap-1 font-sans">
                   <i class="fa-solid fa-file-arrow-up"></i> Upload .txt
                   <input type="file" id="file-upload" accept=".txt,.md" class="hidden">
@@ -321,30 +330,36 @@
               </div>
             </div>
 
-            <textarea id="training-text" rows="8" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none transition leading-relaxed" placeholder="Format your text using User: and AI: turns for optimal chat responses..."></textarea>
+            <textarea id="training-text" rows="9" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none transition leading-relaxed" placeholder="Paste user:/ai: dialogue pairs OR raw knowledge paragraphs here (or insert packs from the Corpus Library tab)..."></textarea>
           </div>
 
           <!-- Hyperparameters -->
           <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
-            <span class="text-xs font-semibold text-slate-300 block border-b border-slate-800 pb-2">
-              <i class="fa-solid fa-sliders text-accent-400 mr-1"></i> Hyperparameters
-            </span>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-semibold text-slate-300">
+                <i class="fa-solid fa-sliders text-accent-400 mr-1"></i> Hyperparameters
+              </span>
+              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                <input type="checkbox" id="param-augment" checked class="accent-brand-500 rounded">
+                <span>Auto-Reinforce Short Datasets (3x Weight Boost)</span>
+              </label>
+            </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <label class="text-slate-400 block mb-1">Epochs: <span id="val-epochs" class="text-white font-bold">60</span></label>
-                <input type="range" id="param-epochs" min="10" max="300" step="10" value="60" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
+                <label class="text-slate-400 block mb-1">Epochs: <span id="val-epochs" class="text-white font-bold">80</span></label>
+                <input type="range" id="param-epochs" min="10" max="300" step="10" value="80" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
               </div>
               <div>
                 <label class="text-slate-400 block mb-1">Learning Rate: <span id="val-lr" class="text-white font-bold">0.08</span></label>
                 <input type="range" id="param-lr" min="0.01" max="0.3" step="0.01" value="0.08" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
               </div>
               <div>
-                <label class="text-slate-400 block mb-1">Context Window: <span id="val-context" class="text-white font-bold">2</span></label>
-                <input type="range" id="param-context" min="1" max="4" step="1" value="2" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
+                <label class="text-slate-400 block mb-1">Context Window: <span id="val-context" class="text-white font-bold">3</span></label>
+                <input type="range" id="param-context" min="2" max="6" step="1" value="3" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
               </div>
               <div>
-                <label class="text-slate-400 block mb-1">Hidden Dim: <span id="val-hidden" class="text-white font-bold">32</span></label>
-                <input type="range" id="param-hidden" min="16" max="96" step="16" value="32" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
+                <label class="text-slate-400 block mb-1">Hidden Dim: <span id="val-hidden" class="text-white font-bold">48</span></label>
+                <input type="range" id="param-hidden" min="16" max="128" step="16" value="48" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
               </div>
             </div>
           </div>
@@ -384,7 +399,7 @@
                 <div class="flex justify-between text-[10px] text-slate-500 font-mono">
                   <span>Epoch 1</span>
                   <span>Training Loss Curve</span>
-                  <span id="chart-max-epoch">Epoch 60</span>
+                  <span id="chart-max-epoch">Epoch 80</span>
                 </div>
                 <div class="w-full h-28 bg-slate-900/80 rounded-lg border border-slate-800 p-2 relative">
                   <svg id="loss-chart-svg" class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
@@ -400,7 +415,34 @@
         </div>
       </section>
 
-      <!-- ================= TAB 3: MODELS HUB ================= -->
+      <!-- ================= TAB 3: CORPUS LIBRARY (NEW!) ================= -->
+      <section id="library-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-pink-400"></i>
+              Training Corpus & Paragraph Library
+            </h2>
+            <p class="text-xs text-slate-400">1-click copy, append, or auto-train curated Q&A datasets and rich knowledge paragraphs</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select id="library-category-filter" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
+              <option value="all">All Categories (10 Packs)</option>
+              <option value="dialogue">Conversational Q&A</option>
+              <option value="knowledge">Knowledge Paragraphs</option>
+              <option value="creative">Roleplay & Storytelling</option>
+              <option value="tech">Coding & AI Science</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="library-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Dynamically populated library cards -->
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: MODELS HUB ================= -->
       <section id="models-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
         <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
           <div>
@@ -418,21 +460,17 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
-          <!-- Models List Cards Container -->
           <div class="space-y-2">
             <span class="text-xs font-semibold text-slate-300 block">Saved AI Models</span>
-            <div id="models-card-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <!-- Dynamically rendered model cards -->
-            </div>
+            <div id="models-card-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
           </div>
 
-          <!-- Master Backup & JSON Import / Export -->
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3 mt-4">
             <span class="text-xs font-semibold text-slate-300 block border-b border-slate-800 pb-2">
               <i class="fa-solid fa-floppy-disk text-emerald-400 mr-1"></i> Brain Import & Export
             </span>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Export your trained models as `.json` brain files to share across devices or commit to your GitHub repository!
+              Export your trained models as <code>.json</code> brain files to back them up, share across devices, or commit to GitHub.
             </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -456,104 +494,78 @@
         </div>
       </section>
 
-      <!-- ================= TAB 4: HOW TO GUIDE ================= -->
+      <!-- ================= TAB 5: HOW TO GUIDE ================= -->
       <section id="guide-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
         <div class="p-4 border-b border-slate-800 bg-slate-900/50">
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-400"></i>
-            How To Train & Manage Your Pure JS AI
+            How To Train & Tune Your Browser AI (v3.0)
           </h2>
-          <p class="text-xs text-slate-400">Mastering formatting, anti-repetition tuning, and multi-device setup</p>
+          <p class="text-xs text-slate-400">Why v3.0 stops repetition loops and how to combine Q&A pairs with raw paragraphs</p>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-6 text-xs leading-relaxed text-slate-300">
-          
-          <!-- Guide Section 1 -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs leading-relaxed text-slate-300">
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
             <h3 class="text-sm font-bold text-brand-400 flex items-center gap-2">
-              <i class="fa-solid fa-pen-to-square"></i> 1. How to Format Training Text
+              <i class="fa-solid fa-anchor"></i> 1. What Changed in the v3.0 Trainer?
             </h3>
             <p>
-              Your model learns by reading dialogue transitions. Always format training data as clean <b>User:</b> and <b>AI:</b> turns:
-            </p>
-            <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-200">
-              User: Hello!<br>
-              AI: Hi there! How can I help you today?<br>
-              User: What is pure JavaScript?<br>
-              AI: Pure JavaScript means running code without external libraries or servers.
-            </div>
-          </div>
-
-          <!-- Guide Section 2 -->
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-            <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-              <i class="fa-solid fa-arrows-spin"></i> 2. Fixing Loops & Repetition
-            </h3>
-            <p>
-              If your model starts repeating the same sentence (e.g. <i>"hello im good how are you hello im good..."</i>):
+              In v2.0, typing <code>hi</code> only fed the single word <code>hi</code> into the neural network without the <code>user: ... ai:</code> turn markers it saw during training, causing it to drift into random sentences.
             </p>
             <ul class="list-disc list-inside space-y-1 text-slate-400 pl-1">
-              <li><b>Increase Repetition Penalty:</b> Set the slider between <code class="text-amber-300 font-mono">1.2</code> and <code class="text-amber-300 font-mono">1.5</code> in Chat Studio.</li>
-              <li><b>Lower Max Tokens:</b> Keep response limits around <code class="text-accent-300 font-mono">30-50</code> tokens for short Q&A.</li>
-              <li><b>Use Stop Words:</b> The AI engine automatically cuts off generation as soon as it sees <code class="text-brand-300 font-mono">User:</code> or a double newline.</li>
-              <li><b>Use Correct / Teach:</b> Click the yellow graduation cap under a repeating response, type the ideal short answer, and save it!</li>
+              <li><b>Automatic Turn Conditioning:</b> When you type <code>hi</code> in Chat Studio, the engine automatically formats the internal context as <code>user: hi &lt;sep&gt; ai:</code> so the neural network knows it must output an answer!</li>
+              <li><b>Semantic TF-IDF Memory:</b> Both engines index every Q&A pair and paragraph sentence using TF-IDF cosine similarity, blending exact recall with neural generation.</li>
+              <li><b>Top-K + Repetition Penalty:</b> Filters out low-probability gibberish tokens before sampling.</li>
             </ul>
           </div>
 
-          <!-- Guide Section 3 -->
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-            <h3 class="text-sm font-bold text-accent-400 flex items-center gap-2">
-              <i class="fa-solid fa-mobile-screen-button"></i> 3. Syncing to Phone & GitHub Pages
+            <h3 class="text-sm font-bold text-pink-400 flex items-center gap-2">
+              <i class="fa-solid fa-layer-group"></i> 2. Mixing Q&A Pairs + Knowledge Paragraphs
             </h3>
             <p>
-              Because this app runs locally inside browser storage, trained models do not automatically sync across different devices over the cloud:
+              You can combine both formats in the same training session:
             </p>
-            <ol class="list-decimal list-inside space-y-1 text-slate-400 pl-1">
-              <li>Train your model on your PC where pasting text is easiest.</li>
-              <li>Go to <b>Models Hub</b> and click <b>Export Active Model (.json)</b>.</li>
-              <li>Send that JSON file to your phone.</li>
-              <li>Open your live GitHub Pages link on your phone (<code class="text-slate-200 font-mono">https://username.github.io/repo/</code>) and click <b>Import Model JSON</b>!</li>
-            </ol>
+            <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-200 space-y-1">
+              <div class="text-brand-400"># Dialogue Format (Best for chat & greetings)</div>
+              <div>user: hi</div>
+              <div>ai: Hello! How can I help you today?</div>
+              <div class="text-pink-400 pt-2"># Paragraph Format (Best for facts & essays)</div>
+              <div>Photosynthesis is the process used by plants to convert light energy into chemical energy.</div>
+            </div>
           </div>
-
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- Create / Rename Model Modal -->
+  <!-- Create Model Modal -->
   <div id="model-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="glass-panel max-w-md w-full rounded-2xl border border-slate-800 p-5 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 id="modal-title" class="text-sm font-bold text-white">Create New AI Model</h3>
-        <button id="close-model-modal" class="text-slate-400 hover:text-white text-sm p-1">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <h3 class="text-sm font-bold text-white">Create New AI Model</h3>
+        <button id="close-model-modal" class="text-slate-400 hover:text-white text-sm p-1"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="space-y-3 text-xs">
         <div>
           <label for="modal-model-name" class="text-slate-300 block mb-1 font-semibold">Model Name:</label>
-          <input type="text" id="modal-model-name" placeholder="e.g. Study Partner, Science Bot" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2 text-white focus:outline-none transition">
+          <input type="text" id="modal-model-name" placeholder="e.g. Study Tutor, Space Bot, RPG Master" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2 text-white focus:outline-none transition">
         </div>
 
         <div>
           <label class="text-slate-300 block mb-1 font-semibold">Engine Architecture:</label>
           <select id="modal-model-type" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2 text-white focus:outline-none transition">
-            <option value="neural">Neural Network (Tiny MLP)</option>
-            <option value="ngram">Hybrid Context N-Gram Engine</option>
+            <option value="neural">Turn-Anchored Neural MLP (Recommended)</option>
+            <option value="ngram">Semantic TF-IDF + N-Gram Engine</option>
           </select>
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-        <button id="cancel-model-btn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium">
-          Cancel
-        </button>
-        <button id="save-model-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">
-          Save Model
-        </button>
+        <button id="cancel-model-btn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium">Cancel</button>
+        <button id="save-model-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">Create Model</button>
       </div>
     </div>
   </div>
@@ -566,9 +578,7 @@
           <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
           Teach / Correct AI Response
         </h3>
-        <button id="close-teach-modal" class="text-slate-400 hover:text-white text-sm p-1">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button id="close-teach-modal" class="text-slate-400 hover:text-white text-sm p-1"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="space-y-3 text-xs">
@@ -578,17 +588,13 @@
         </div>
 
         <div>
-          <label for="teach-ideal-input" class="text-slate-400 block mb-1 font-semibold">
-            Ideal AI Response (What the AI SHOULD have said):
-          </label>
+          <label for="teach-ideal-input" class="text-slate-400 block mb-1 font-semibold">Ideal AI Response:</label>
           <textarea id="teach-ideal-input" rows="4" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-2.5 text-xs font-mono text-white focus:outline-none transition"></textarea>
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-        <button id="cancel-teach-btn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium">
-          Cancel
-        </button>
+        <button id="cancel-teach-btn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium">Cancel</button>
         <button id="submit-teach-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold flex items-center gap-1.5">
           <i class="fa-solid fa-graduation-cap"></i>
           <span>Train on Correction</span>
@@ -597,10 +603,231 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT ENGINES & LOGIC -->
+  <!-- JAVASCRIPT ENGINES & CORPUS LIBRARY -->
   <script>
     /**
-     * TOKENIZER
+     * CURATED TRAINING CORPUS & PARAGRAPH LIBRARY
+     */
+    const CORPUS_LIBRARY = [
+      {
+        id: 'core-greetings',
+        category: 'dialogue',
+        badge: 'Essential Starter',
+        title: 'Friendly Conversational Core (Q&A)',
+        description: 'Clean, high-signal greetings, small talk, identity, and polite responses so your bot handles basic chat smoothly.',
+        text: `user: hi
+ai: Hello! How can I help you today?
+
+user: hello
+ai: Hi there! What is on your mind?
+
+user: hey
+ai: Hey! Good to see you. How is your day going?
+
+user: good morning
+ai: Good morning! Ready to get started?
+
+user: good evening
+ai: Good evening! How can I assist you tonight?
+
+user: how are you
+ai: I am doing great, thank you for asking! How are you doing?
+
+user: who are you
+ai: I am your custom browser AI assistant built in Teachable AI Studio.
+
+user: what is your name
+ai: You can call me Studio AI. What is your name?
+
+user: what can you do
+ai: I can chat with you, answer questions, and learn from any paragraphs or dialogue you train me on.
+
+user: thank you
+ai: You are very welcome! Let me know if you need anything else.
+
+user: thanks
+ai: Anytime! Happy to help.
+
+user: bye
+ai: Goodbye! Have a wonderful day!
+
+user: see you later
+ai: See you later! Come back anytime.`
+      },
+      {
+        id: 'jokes-fun',
+        category: 'dialogue',
+        badge: 'Humor & Wit',
+        title: 'Tech Jokes & Fun Facts Pack (Q&A)',
+        description: 'Teaches your model programmer jokes, riddles, and surprising science trivia.',
+        text: `user: tell me a joke
+ai: Why do programmers prefer dark mode? Because light attracts bugs!
+
+user: tell me another joke
+ai: Why did the computer go to the doctor? Because it caught a virus!
+
+user: make me laugh
+ai: There are only 10 types of people in the world: those who understand binary, and those who do not.
+
+user: tell me a fun fact
+ai: Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that is still edible!
+
+user: give me another fact
+ai: Octopuses have three hearts, nine brains, and blue copper-based blood.
+
+user: tell me something cool
+ai: A single day on Venus is longer than a full year on Venus because it rotates so slowly.`
+      },
+      {
+        id: 'space-paragraph',
+        category: 'knowledge',
+        badge: 'Knowledge Paragraph',
+        title: 'Solar System & Astrophysics Essay',
+        description: 'Dense informational paragraphs about stars, black holes, gravity, and planets for factual retrieval.',
+        text: `The Solar System formed approximately 4.6 billion years ago from the gravitational collapse of a giant interstellar molecular cloud. At its center lies the Sun, a G-type main-sequence star that contains more than 99.8 percent of the entire system's mass and generates energy through nuclear fusion by converting hydrogen into helium in its core.
+
+Mercury, Venus, Earth, and Mars are the four inner terrestrial planets composed primarily of rock and metal. Beyond the asteroid belt lie the gas giants Jupiter and Saturn, followed by the ice giants Uranus and Neptune. Jupiter is the largest planet in our Solar System, featuring a massive magnetosphere and the Great Red Spot, a persistent anticyclonic storm larger than Earth.
+
+Black holes are regions of spacetime where gravity is so strong that nothing, not even light or electromagnetic radiation, can escape once it crosses the event horizon. Supermassive black holes millions or billions of times the mass of the Sun reside at the centers of most large galaxies, including Sagittarius A* at the heart of our Milky Way.
+
+user: how old is the solar system
+ai: The Solar System formed approximately 4.6 billion years ago from a collapsing molecular cloud.
+
+user: what is a black hole
+ai: A black hole is a region of spacetime where gravity is so strong that not even light can escape past the event horizon.
+
+user: what is the largest planet
+ai: Jupiter is the largest planet in our Solar System and features the Great Red Spot.`
+      },
+      {
+        id: 'ai-ml-paragraph',
+        category: 'tech',
+        badge: 'AI & ML Paragraph',
+        title: 'How Neural Networks & LLMs Work',
+        description: 'Rich technical paragraphs explaining tokenization, embeddings, gradient descent, and transformers.',
+        text: `Artificial neural networks are computing systems inspired by biological brains. They consist of interconnected layers of artificial neurons that transform input data into meaningful predictions. Each connection carries a numerical weight that adjusts during training to minimize prediction error.
+
+Language models process text by first breaking sentences into smaller units called tokens. Each token is mapped into a dense vector representation known as an embedding, which captures semantic relationships between words. During training, backpropagation computes the gradient of the loss function with respect to every weight, and gradient descent updates those weights step by step.
+
+Temperature and Top-K sampling control how creative or deterministic a language model behaves during text generation. A low temperature sharpens probabilities around the most likely next token, while a higher temperature flattens the distribution to encourage diverse phrasing.
+
+user: how do neural networks learn
+ai: Neural networks learn by using backpropagation and gradient descent to adjust connection weights and minimize prediction loss.
+
+user: what is tokenization
+ai: Tokenization is the process of breaking raw text into smaller units like words or subwords so a model can process them.
+
+user: what does temperature do
+ai: Low temperature makes responses focused and predictable, while high temperature increases creativity and randomness.`
+      },
+      {
+        id: 'webdev-coding',
+        category: 'tech',
+        badge: 'Coding Tutor',
+        title: 'Web Development & JavaScript Guide',
+        description: 'Explains HTML, CSS, JavaScript, DOM manipulation, and asynchronous programming.',
+        text: `Modern web applications are built on three core technologies: HTML, CSS, and JavaScript. HTML defines the semantic structure and content of a webpage, CSS controls visual styling, responsive layouts, and animations, and JavaScript adds real-time interactivity and logic directly in the browser.
+
+In JavaScript, asynchronous operations such as fetching data from an API or running training loops without freezing the user interface are handled using Promises and async/await syntax. LocalStorage allows web applications to persist JSON data directly on the user's device without requiring an external backend server.
+
+user: what is html
+ai: HTML stands for HyperText Markup Language and defines the structure of a web page.
+
+user: what is css
+ai: CSS stands for Cascading Style Sheets and controls the colors, layout, and visual design of web pages.
+
+user: what is javascript
+ai: JavaScript is the programming language that powers interactive features and logic inside web browsers.`
+      },
+      {
+        id: 'biology-earth',
+        category: 'knowledge',
+        badge: 'Science Paragraph',
+        title: 'Photosynthesis, DNA & Earth Ecosystems',
+        description: 'Educational science paragraphs covering cellular biology, genetics, and climate systems.',
+        text: `Photosynthesis is the biochemical process by which green plants, algae, and cyanobacteria convert light energy from the sun into chemical energy stored in glucose molecules. Using chlorophyll inside chloroplasts, plants absorb carbon dioxide from the air and water from the soil, releasing oxygen as a vital byproduct that sustains aerobic life on Earth.
+
+Deoxyribonucleic acid, or DNA, is a double-helix molecule that carries the genetic instructions for the development, functioning, growth, and reproduction of all known organisms. Its four nucleotide bases—adenine, thymine, cytosine, and guanine—pair specifically to encode proteins.
+
+user: what is photosynthesis
+ai: Photosynthesis is the process plants use to convert sunlight, water, and carbon dioxide into glucose and oxygen.
+
+user: what is dna
+ai: DNA is a double-helix molecule that stores the genetic instructions for all living organisms.`
+      },
+      {
+        id: 'fantasy-rpg',
+        category: 'creative',
+        badge: 'Roleplay World',
+        title: 'Eldoria Fantasy Tavern & Magic Lore',
+        description: 'Immersive world-building paragraphs and character dialogue for interactive fantasy RPG bots.',
+        text: `Welcome to the Silver Lantern Tavern in the sky-city of Eldoria, where floating islands drift above a sea of luminous clouds. Adventurers gather here to trade starlight crystals, decipher ancient runic maps, and hire airship crews before venturing into the Whispering Rift.
+
+Arcane magic in Eldoria flows from four elemental ley lines: Ignis for solar fire, Aqua for tide weaving, Ventus for storm flight, and Terra for crystal forging. Only mages who master focus and calm breathing can channel ley energy without exhausting their spirit.
+
+user: where am i
+ai: You are inside the Silver Lantern Tavern in Eldoria, a floating city suspended above luminous clouds.
+
+user: teach me magic
+ai: Focus your mind on the four elemental ley lines—Ignis, Aqua, Ventus, and Terra—and speak the incantation softly.
+
+user: any quests available
+ai: Rumor speaks of a lost starlight compass hidden inside the Whispering Rift. Are you brave enough to seek it?`
+      },
+      {
+        id: 'study-coach',
+        category: 'dialogue',
+        badge: 'Productivity',
+        title: 'Study Coach & Focus Habits',
+        description: 'Motivational Q&A and evidence-based study techniques like Pomodoro and active recall.',
+        text: `user: i cant focus
+ai: Try the Pomodoro technique: set a timer for 25 minutes of single-task focus, then take a 5-minute stretch break.
+
+user: how should i study
+ai: Use active recall and spaced repetition. Test yourself with questions rather than just re-reading notes!
+
+user: i feel stressed
+ai: Take a slow deep breath for four seconds, hold for four seconds, and exhale for six. Break your work into one tiny step.
+
+user: motivate me
+ai: Small consistent progress every single day beats cramming. Pick one task and finish just the first five minutes!`
+      },
+      {
+        id: 'history-ancient',
+        category: 'knowledge',
+        badge: 'History Paragraph',
+        title: 'Ancient Civilizations & Inventions',
+        description: 'Historical overview paragraphs covering Mesopotamia, Ancient Egypt, the Printing Press, and the Silk Road.',
+        text: `Human civilization first flourished along fertile river valleys such as the Tigris and Euphrates in Mesopotamia and the Nile in Ancient Egypt. Around 3200 BCE, Sumerian scribes developed cuneiform, one of the earliest systems of writing, while Egyptians engineered monumental stone pyramids and advanced geometry.
+
+Centuries later, the Silk Road connected East Asia with the Mediterranean world, enabling not only the trade of silk, spices, and glassware, but also the exchange of mathematics, astronomy, paper-making, and philosophy across continents.
+
+user: where did early civilizations start
+ai: Early civilizations flourished along fertile river valleys like Mesopotamia and the Nile River in Ancient Egypt.
+
+user: what was the silk road
+ai: The Silk Road was a network of trade routes connecting East Asia and the Mediterranean that spread goods, science, and culture.`
+      },
+      {
+        id: 'cyber-security',
+        category: 'tech',
+        badge: 'Security Guide',
+        title: 'Cybersecurity & Encryption Basics',
+        description: 'Clear explanations of encryption, two-factor authentication, phishing, and password safety.',
+        text: `Encryption protects sensitive digital information by scrambling readable plaintext into ciphertext using mathematical algorithms and cryptographic keys. Only authorized parties possessing the correct decryption key can restore the original message, ensuring privacy across public networks.
+
+Strong cybersecurity habits include using unique passwords managed by a password manager, enabling two-factor authentication on important accounts, and verifying sender addresses to avoid phishing attacks.
+
+user: what is encryption
+ai: Encryption scrambles readable data into ciphertext so only authorized users with the decryption key can read it.
+
+user: how do i stay safe online
+ai: Use unique strong passwords, enable two-factor authentication, and be cautious of unexpected links.`
+      }
+    ];
+
+    /**
+     * ENHANCED TOKENIZER (Preserves turn structure & clean punctuation)
      */
     class Tokenizer {
       constructor() {
@@ -608,14 +835,12 @@
         this.UNK = '<unk>';
         this.BOS = '<bos>';
         this.EOS = '<eos>';
+        this.SEP = '<sep>';
 
         this.vocab = new Map();
         this.idToToken = [];
 
-        this.addToken(this.PAD);
-        this.addToken(this.UNK);
-        this.addToken(this.BOS);
-        this.addToken(this.EOS);
+        [this.PAD, this.UNK, this.BOS, this.EOS, this.SEP].forEach(t => this.addToken(t));
       }
 
       addToken(token) {
@@ -630,7 +855,16 @@
 
       tokenize(text) {
         if (!text) return [];
-        const matches = text.toLowerCase().match(/\b[\w']+\b|[^\w\s]/g);
+        // Normalize user: and ai: tags and newlines into explicit <eos> / <sep> markers
+        const normalized = text
+          .replace(/
+/g, '
+')
+          .replace(/
+{2,}/g, ' <eos> ')
+          .replace(/
+/g, ' <sep> ');
+        const matches = normalized.toLowerCase().match(/<eos>|<sep>|<bos>|<pad>|<unk>|[\w']+|[^\w\s]/g);
         return matches || [];
       }
 
@@ -640,7 +874,7 @@
 
       decode(ids) {
         return ids.map(id => this.idToToken[id] || this.UNK)
-                  .filter(t => t !== this.PAD && t !== this.BOS && t !== this.EOS);
+                  .filter(t => ![this.PAD, this.BOS, this.EOS, this.SEP, this.UNK].includes(t));
       }
 
       buildVocabFromText(text) {
@@ -655,14 +889,138 @@
     }
 
     /**
-     * NEURAL NETWORK ENGINE (With Anti-Repetition Sampling & Stop Detection)
+     * SEMANTIC KNOWLEDGE & Q&A RETRIEVAL INDEX (TF-IDF Cosine Similarity)
+     */
+    class SemanticMemory {
+      constructor() {
+        this.qaPairs = [];
+        this.sentences = [];
+        this.idf = new Map();
+      }
+
+      indexText(text) {
+        this.qaPairs = [];
+        this.sentences = [];
+
+        // Extract explicit User / AI dialogue turns
+        const lines = text.split(/
+?
+/).map(l => l.trim()).filter(Boolean);
+        let pendingUser = null;
+
+        for (const line of lines) {
+          const userMatch = line.match(/^(?:user|human|q)\s*:\s*(.+)$/i);
+          const aiMatch = line.match(/^(?:ai|bot|assistant|a)\s*:\s*(.+)$/i);
+
+          if (userMatch) {
+            pendingUser = userMatch[1].trim();
+          } else if (aiMatch && pendingUser) {
+            this.qaPairs.push({
+              prompt: pendingUser,
+              response: aiMatch[1].trim(),
+              terms: this.extractTerms(pendingUser)
+            });
+            pendingUser = null;
+          } else if (!userMatch && !aiMatch && line.length > 20) {
+            // Split paragraph into individual declarative sentences
+            const rawSentences = line.match(/[^.!?]+[.!?]+/g) || [line];
+            rawSentences.forEach(s => {
+              const clean = s.trim();
+              if (clean.split(/\s+/).length >= 4) {
+                this.sentences.push({
+                  text: clean,
+                  terms: this.extractTerms(clean)
+                });
+              }
+            });
+          }
+        }
+
+        // Compute IDF across all indexed items
+        const docCount = Math.max(1, this.qaPairs.length + this.sentences.length);
+        const df = new Map();
+        [...this.qaPairs, ...this.sentences].forEach(item => {
+          const unique = new Set(item.terms);
+          unique.forEach(t => df.set(t, (df.get(t) || 0) + 1));
+        });
+
+        this.idf.clear();
+        df.forEach((count, term) => {
+          this.idf.set(term, Math.log((docCount + 1) / (count + 0.5)) + 1);
+        });
+      }
+
+      extractTerms(str) {
+        const stop = new Set(['the', 'is', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'it', 'that', 'for', 'on', 'with', 'as', 'are', 'this', 'by', 'be', 'at']);
+        const words = (str.toLowerCase().match(/[\w']+/g) || []);
+        const filtered = words.filter(w => !stop.has(w));
+        return filtered.length > 0 ? filtered : words;
+      }
+
+      similarity(termsA, termsB) {
+        if (!termsA.length || !termsB.length) return 0;
+        const vecA = new Map();
+        const vecB = new Map();
+        termsA.forEach(t => vecA.set(t, (vecA.get(t) || 0) + (this.idf.get(t) || 1)));
+        termsB.forEach(t => vecB.set(t, (vecB.get(t) || 0) + (this.idf.get(t) || 1)));
+
+        let dot = 0, normA = 0, normB = 0;
+        vecA.forEach((val, k) => {
+          normA += val * val;
+          if (vecB.has(k)) dot += val * vecB.get(k);
+        });
+        vecB.forEach(val => { normB += val * val; });
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB) || 1);
+      }
+
+      queryBestMatch(prompt) {
+        const clean = prompt.toLowerCase().trim().replace(/[?!.]+$/g, '');
+        const qTerms = this.extractTerms(clean);
+
+        // 1. Exact or near-exact Q&A match
+        let bestQA = null;
+        let bestQAScore = 0;
+        for (const qa of this.qaPairs) {
+          const pClean = qa.prompt.toLowerCase().trim().replace(/[?!.]+$/g, '');
+          if (pClean === clean) return { text: qa.response, score: 1.0, source: 'qa' };
+          const score = this.similarity(qTerms, qa.terms);
+          if (score > bestQAScore) {
+            bestQAScore = score;
+            bestQA = qa;
+          }
+        }
+        if (bestQA && bestQAScore >= 0.55) {
+          return { text: bestQA.response, score: bestQAScore, source: 'qa' };
+        }
+
+        // 2. Knowledge paragraph sentence retrieval
+        let bestSent = null;
+        let bestSentScore = 0;
+        for (const s of this.sentences) {
+          const score = this.similarity(qTerms, s.terms);
+          if (score > bestSentScore) {
+            bestSentScore = score;
+            bestSent = s;
+          }
+        }
+        if (bestSent && bestSentScore >= 0.42) {
+          return { text: bestSent.text, score: bestSentScore, source: 'paragraph' };
+        }
+
+        return null;
+      }
+    }
+
+    /**
+     * UPGRADED TURN-ANCHORED NEURAL NETWORK ENGINE
      */
     class TinyNeuralLM {
-      constructor(contextSize = 2, embDim = 16, hiddenDim = 32) {
+      constructor(contextSize = 3, embDim = 20, hiddenDim = 48) {
         this.contextSize = contextSize;
         this.embDim = embDim;
         this.hiddenDim = hiddenDim;
         this.tokenizer = new Tokenizer();
+        this.memory = new SemanticMemory();
 
         this.E = null;
         this.W1 = null;
@@ -673,6 +1031,7 @@
         this.lossHistory = [];
         this.isTrained = false;
         this.epochsTrained = 0;
+        this.rawCorpus = '';
       }
 
       initWeights() {
@@ -704,8 +1063,21 @@
         return this.E.length + this.W1.length + this.b1.length + this.W2.length + this.b2.length;
       }
 
-      prepareDataset(text) {
-        const tokens = this.tokenizer.buildVocabFromText(text);
+      prepareDataset(text, augmentShort = true) {
+        this.rawCorpus = text;
+        this.memory.indexText(text);
+
+        // If dataset is compact, reinforce dialogue lines so weights converge cleanly
+        let processedText = text;
+        if (augmentShort && text.length < 2500) {
+          processedText = `${text}
+
+${text}
+
+${text}`;
+        }
+
+        const tokens = this.tokenizer.buildVocabFromText(processedText);
         this.initWeights();
 
         const encoded = this.tokenizer.encode(tokens);
@@ -770,13 +1142,12 @@
           probs[k] /= sumExp;
         }
 
-        return { xEmb, hOut, probs, logits };
+        return { xEmb, hOut, probs };
       }
 
       trainStep(contextIds, targetId, lr) {
         const V = this.tokenizer.size();
         const inDim = this.contextSize * this.embDim;
-
         const { xEmb, hOut, probs } = this.forward(contextIds);
 
         const targetProb = Math.max(probs[targetId], 1e-10);
@@ -829,12 +1200,27 @@
         return loss;
       }
 
-      generate(prompt, maxTokens = 40, temperature = 0.6, repetitionPenalty = 1.25) {
-        if (!this.E) return "Model has not been trained yet. Please switch to Train Studio and click Train!";
+      generate(prompt, maxTokens = 45, temperature = 0.35, repetitionPenalty = 1.35, topK = 5) {
+        if (!this.E) return "Model has not been trained yet. Open Train Studio or Corpus Library to train me!";
 
-        const promptTokens = this.tokenizer.tokenize(prompt);
+        // 1. Check Semantic Memory for exact Q&A or high-confidence knowledge paragraph match
+        const semanticHit = this.memory.queryBestMatch(prompt);
+        if (semanticHit && (semanticHit.score >= 0.72 || temperature <= 0.45)) {
+          return semanticHit.text;
+        }
+
+        // 2. Turn-Anchored Neural Decoding: condition prompt with "user: <prompt>
+ai:"
+        const hasTurnPrefix = /^(user|ai)\s*:/i.test(prompt.trim());
+        const conditionedPrompt = hasTurnPrefix ? prompt : `user: ${prompt.trim()}
+ai:`;
+
+        const promptTokens = this.tokenizer.tokenize(conditionedPrompt);
         let encoded = this.tokenizer.encode(promptTokens);
         const padId = this.tokenizer.vocab.get(this.tokenizer.PAD);
+        const unkId = this.tokenizer.vocab.get(this.tokenizer.UNK);
+        const eosId = this.tokenizer.vocab.get(this.tokenizer.EOS);
+        const sepId = this.tokenizer.vocab.get(this.tokenizer.SEP);
 
         if (encoded.length === 0) encoded = [padId];
 
@@ -851,50 +1237,49 @@
 
           const { probs } = this.forward(context);
 
-          // Apply Repetition Penalty & Temperature
-          const adjustedProbs = new Float32Array(probs.length);
-          let sum = 0;
-
+          // Score & filter candidates
+          const candidates = [];
           for (let i = 0; i < probs.length; i++) {
+            if (i === padId || i === unkId) continue;
+            const tokStr = this.tokenizer.idToToken[i];
+            if (tokStr === 'user' || tokStr === 'ai' || tokStr === 'human') continue;
+
             let p = probs[i];
-            // Apply penalty if token was previously generated
             if (seenCounts.has(i)) {
               p /= Math.pow(repetitionPenalty, seenCounts.get(i));
             }
             p = Math.pow(Math.max(p, 1e-10), 1 / Math.max(temperature, 0.1));
-            adjustedProbs[i] = p;
-            sum += p;
+            candidates.push({ id: i, prob: p });
           }
 
-          // Sample Token
+          // Top-K filtering
+          candidates.sort((a, b) => b.prob - a.prob);
+          const topCandidates = candidates.slice(0, Math.max(1, topK));
+          const sum = topCandidates.reduce((acc, c) => acc + c.prob, 0);
+
           let rand = Math.random() * sum;
-          let nextId = 0;
-          for (let i = 0; i < adjustedProbs.length; i++) {
-            rand -= adjustedProbs[i];
+          let nextId = topCandidates[0].id;
+          for (const cand of topCandidates) {
+            rand -= cand.prob;
             if (rand <= 0) {
-              nextId = i;
+              nextId = cand.id;
               break;
             }
           }
 
-          const nextTokenStr = this.tokenizer.idToToken[nextId] || '';
-
-          // STOP CONDITIONS
-          if (nextTokenStr === 'user' || nextTokenStr === 'q' || nextTokenStr === 'human') {
-            break;
+          // Stop at end of turn or separator
+          if (nextId === eosId || nextId === sepId) {
+            if (generatedIds.length > 0) break;
+            continue;
           }
 
           generatedIds.push(nextId);
           seenCounts.set(nextId, (seenCounts.get(nextId) || 0) + 1);
 
-          // Check N-Gram Loop
-          if (generatedIds.length >= 6) {
-            const len = generatedIds.length;
-            if (generatedIds[len - 1] === generatedIds[len - 4] &&
-                generatedIds[len - 2] === generatedIds[len - 5] &&
-                generatedIds[len - 3] === generatedIds[len - 6]) {
-              break; // Prevent 3-token loop repetition
-            }
+          // Stop cleanly at sentence punctuation once a complete phrase is formed
+          const tokStr = this.tokenizer.idToToken[nextId];
+          if (['.', '!', '?'].includes(tokStr) && generatedIds.length >= 4) {
+            break;
           }
         }
 
@@ -903,7 +1288,12 @@
           .replace(/\s+([,.?!':;])/g, '$1')
           .replace(/\s+'/g, "'");
 
-        return result || "I understand.";
+        // Capitalize first letter cleanly
+        if (result.length > 0) {
+          result = result.charAt(0).toUpperCase() + result.slice(1);
+        }
+
+        return result || (semanticHit ? semanticHit.text : "I am listening! Train me with more examples in Train Studio.");
       }
 
       toJSON() {
@@ -915,6 +1305,7 @@
           vocab: this.tokenizer.idToToken,
           lossHistory: this.lossHistory,
           epochsTrained: this.epochsTrained,
+          rawCorpus: this.rawCorpus,
           E: Array.from(this.E || []),
           W1: Array.from(this.W1 || []),
           b1: Array.from(this.b1 || []),
@@ -924,14 +1315,16 @@
       }
 
       fromJSON(data) {
-        this.contextSize = data.contextSize || 2;
-        this.embDim = data.embDim || 16;
-        this.hiddenDim = data.hiddenDim || 32;
+        this.contextSize = data.contextSize || 3;
+        this.embDim = data.embDim || 20;
+        this.hiddenDim = data.hiddenDim || 48;
         this.lossHistory = data.lossHistory || [];
         this.epochsTrained = data.epochsTrained || 0;
+        this.rawCorpus = data.rawCorpus || '';
 
         this.tokenizer = new Tokenizer();
         if (data.vocab) data.vocab.forEach(t => this.tokenizer.addToken(t));
+        if (this.rawCorpus) this.memory.indexText(this.rawCorpus);
 
         this.E = Float32Array.from(data.E || []);
         this.W1 = Float32Array.from(data.W1 || []);
@@ -943,46 +1336,32 @@
     }
 
     /**
-     * HYBRID N-GRAM ENGINE
+     * SEMANTIC TF-IDF + N-GRAM ENGINE
      */
     class HybridNGramEngine {
       constructor() {
         this.tokenizer = new Tokenizer();
+        this.memory = new SemanticMemory();
         this.ngrams = new Map();
-        this.qaPairs = [];
         this.isTrained = false;
         this.epochsTrained = 1;
+        this.rawCorpus = '';
       }
 
       train(text) {
+        this.rawCorpus = text;
+        this.memory.indexText(text);
         const tokens = this.tokenizer.buildVocabFromText(text);
 
         for (let order = 1; order <= 3; order++) {
           for (let i = 0; i < tokens.length - order; i++) {
             const context = tokens.slice(i, i + order).join('|');
             const nextToken = tokens[i + order];
-
-            if (!this.ngrams.has(context)) {
-              this.ngrams.set(context, new Map());
-            }
+            if (!this.ngrams.has(context)) this.ngrams.set(context, new Map());
             const countMap = this.ngrams.get(context);
             countMap.set(nextToken, (countMap.get(nextToken) || 0) + 1);
           }
         }
-
-        const lines = text.split(/\n+|\./);
-        lines.forEach(line => {
-          if (line.includes(':')) {
-            const parts = line.split(':');
-            if (parts.length >= 2) {
-              this.qaPairs.push({
-                prompt: parts[0].trim().toLowerCase(),
-                response: parts.slice(1).join(':').trim()
-              });
-            }
-          }
-        });
-
         this.isTrained = true;
       }
 
@@ -992,46 +1371,42 @@
         return count;
       }
 
-      generate(prompt, maxTokens = 40, temperature = 0.6) {
-        if (!this.isTrained) return "N-Gram model is empty. Please feed it training text!";
+      generate(prompt, maxTokens = 45, temperature = 0.35) {
+        if (!this.isTrained) return "Model is empty. Load a pack from Corpus Library or train it in Train Studio!";
 
-        const cleanPrompt = prompt.toLowerCase().trim();
+        const semanticHit = this.memory.queryBestMatch(prompt);
+        if (semanticHit) return semanticHit.text;
 
-        for (let pair of this.qaPairs) {
-          if (cleanPrompt.includes(pair.prompt) || pair.prompt.includes(cleanPrompt)) {
-            return pair.response;
-          }
-        }
-
-        const promptTokens = this.tokenizer.tokenize(prompt);
+        const promptTokens = this.tokenizer.tokenize(`user: ${prompt}
+ai:`);
         let currentTokens = [...promptTokens];
         const generated = [];
 
         for (let step = 0; step < maxTokens; step++) {
           let nextToken = null;
-
           for (let order = 2; order >= 1; order--) {
             if (currentTokens.length >= order) {
               const ctx = currentTokens.slice(-order).join('|');
               if (this.ngrams.has(ctx)) {
-                const countMap = this.ngrams.get(ctx);
-                nextToken = this.sampleFromMap(countMap, temperature);
+                nextToken = this.sampleFromMap(this.ngrams.get(ctx), temperature);
                 if (nextToken) break;
               }
             }
           }
 
-          if (!nextToken || nextToken === 'user' || nextToken === 'q') break;
+          if (!nextToken || nextToken === 'user' || nextToken === '<eos>' || nextToken === '<sep>') break;
+          if (nextToken === 'ai' || nextToken === ':') continue;
 
           generated.push(nextToken);
           currentTokens.push(nextToken);
-
-          if (['.', '!', '?'].includes(nextToken) && step > 8) break;
+          if (['.', '!', '?'].includes(nextToken) && generated.length >= 4) break;
         }
 
-        return generated.join(' ')
+        let res = generated.join(' ')
           .replace(/\s+([,.?!':;])/g, '$1')
           .replace(/\s+'/g, "'");
+        if (res.length > 0) res = res.charAt(0).toUpperCase() + res.slice(1);
+        return res || "Tell me more so I can learn!";
       }
 
       sampleFromMap(countMap, temperature) {
@@ -1053,30 +1428,24 @@
 
       toJSON() {
         const ngramsObj = {};
-        this.ngrams.forEach((map, key) => {
-          ngramsObj[key] = Array.from(map.entries());
-        });
-
+        this.ngrams.forEach((map, key) => { ngramsObj[key] = Array.from(map.entries()); });
         return {
           type: 'ngram',
           vocab: this.tokenizer.idToToken,
           ngrams: ngramsObj,
-          qaPairs: this.qaPairs
+          rawCorpus: this.rawCorpus
         };
       }
 
       fromJSON(data) {
         this.tokenizer = new Tokenizer();
         if (data.vocab) data.vocab.forEach(t => this.tokenizer.addToken(t));
-
+        this.rawCorpus = data.rawCorpus || '';
+        if (this.rawCorpus) this.memory.indexText(this.rawCorpus);
         this.ngrams = new Map();
         if (data.ngrams) {
-          Object.keys(data.ngrams).forEach(key => {
-            this.ngrams.set(key, new Map(data.ngrams[key]));
-          });
+          Object.keys(data.ngrams).forEach(key => this.ngrams.set(key, new Map(data.ngrams[key])));
         }
-
-        this.qaPairs = data.qaPairs || [];
         this.isTrained = true;
       }
     }
@@ -1088,21 +1457,51 @@
       constructor() {
         this.models = [];
         this.activeModelId = null;
-
         this.isTraining = false;
         this.stopRequested = false;
 
         this.initUI();
+        this.renderCorpusLibrary('all');
         this.loadModelsFromStorage();
 
         if (this.models.length === 0) {
-          this.createNewModel('Default AI', 'neural');
+          const starter = this.createNewModel('Studio Assistant', 'neural');
+          const defaultCorpus = CORPUS_LIBRARY[0].text + '
+
+' + CORPUS_LIBRARY[1].text;
+          document.getElementById('training-text').value = defaultCorpus;
+          this.updateCorpusStats();
+          this.quickTrainModel(starter, defaultCorpus, 60);
         } else {
           this.activeModelId = this.models[0].id;
+          const active = this.getActiveModelObj();
+          if (active.engine.rawCorpus) {
+            document.getElementById('training-text').value = active.engine.rawCorpus;
+            this.updateCorpusStats();
+          }
         }
 
         this.refreshModelSelect();
         this.updateStatsDisplay();
+      }
+
+      quickTrainModel(modelObj, text, epochs = 60) {
+        if (modelObj.type === 'neural') {
+          const dataset = modelObj.engine.prepareDataset(text, true);
+          for (let ep = 1; ep <= epochs; ep++) {
+            const lr = 0.08 * (1 - 0.5 * (ep / epochs));
+            let epochLoss = 0;
+            for (let i = 0; i < dataset.X.length; i++) {
+              epochLoss += modelObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
+            }
+            modelObj.engine.lossHistory.push(epochLoss / Math.max(1, dataset.X.length));
+          }
+          modelObj.engine.epochsTrained += epochs;
+          modelObj.engine.isTrained = true;
+        } else {
+          modelObj.engine.train(text);
+        }
+        this.saveModelsToStorage();
       }
 
       getActiveModelObj() {
@@ -1111,7 +1510,7 @@
 
       createNewModel(name, type) {
         const newModel = {
-          id: 'model-' + Date.now(),
+          id: 'model-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
           name: name || 'Custom AI',
           type: type || 'neural',
           engine: type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine(),
@@ -1143,25 +1542,20 @@
       duplicateModel(id) {
         const src = this.models.find(m => m.id === id);
         if (!src) return;
-
         const copy = this.createNewModel(src.name + ' (Copy)', src.type);
-        const jsonData = src.engine.toJSON();
-        copy.engine.fromJSON(jsonData);
+        copy.engine.fromJSON(src.engine.toJSON());
         this.saveModelsToStorage();
         this.updateStatsDisplay();
         this.showToast(`Duplicated ${src.name}!`);
       }
 
       initUI() {
-        // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            this.switchTab(btn.getAttribute('tab-target'));
-          });
+          btn.addEventListener('click', () => this.switchTab(btn.getAttribute('tab-target')));
         });
 
-        // Sliders
         this.bindSlider('chat-temp', 'temp-val');
+        this.bindSlider('chat-topk', 'topk-val');
         this.bindSlider('chat-rep-penalty', 'rep-val');
         this.bindSlider('chat-max-tokens', 'max-tokens-val');
         this.bindSlider('param-epochs', 'val-epochs');
@@ -1169,21 +1563,29 @@
         this.bindSlider('param-context', 'val-context');
         this.bindSlider('param-hidden', 'val-hidden');
 
-        // Model selector dropdown in header
-        document.getElementById('active-model-select').addEventListener('change', (e) => {
-          this.activeModelId = e.target.value;
-          this.updateStatsDisplay();
-          this.showToast(`Switched active model to: ${this.getActiveModelObj().name}`);
+        document.getElementById('param-epochs').addEventListener('input', (e) => {
+          document.getElementById('chart-max-epoch').innerText = `Epoch ${e.target.value}`;
         });
 
-        // Create Model Modals
+        document.getElementById('active-model-select').addEventListener('change', (e) => {
+          this.activeModelId = e.target.value;
+          const active = this.getActiveModelObj();
+          if (active.engine.rawCorpus) {
+            document.getElementById('training-text').value = active.engine.rawCorpus;
+            this.updateCorpusStats();
+          }
+          this.updateStatsDisplay();
+          this.showToast(`Switched to: ${active.name}`);
+        });
+
+        // Modals
         document.getElementById('new-model-modal-btn').addEventListener('click', () => this.openModelModal());
         document.getElementById('hub-create-btn').addEventListener('click', () => this.openModelModal());
         document.getElementById('close-model-modal').addEventListener('click', () => this.closeModelModal());
         document.getElementById('cancel-model-btn').addEventListener('click', () => this.closeModelModal());
         document.getElementById('save-model-btn').addEventListener('click', () => this.handleSaveNewModel());
 
-        // Chat send
+        // Chat
         document.getElementById('send-msg-btn').addEventListener('click', () => this.handleSendMessage());
         document.getElementById('chat-input').addEventListener('keydown', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -1192,19 +1594,31 @@
           }
         });
 
+        document.querySelectorAll('.quick-prompt-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            document.getElementById('chat-input').value = chip.innerText;
+            this.handleSendMessage();
+          });
+        });
+
         document.getElementById('clear-chat-btn').addEventListener('click', () => {
           document.getElementById('chat-messages').innerHTML = '';
           this.showToast("Chat cleared.");
         });
 
-        // Presets selector
-        document.getElementById('preset-select').addEventListener('change', (e) => {
-          this.loadPresetText(e.target.value);
+        document.getElementById('export-chat-btn').addEventListener('click', () => this.exportChatTranscript());
+
+        // Library & Training Studio shortcuts
+        document.getElementById('open-library-shortcut-btn').addEventListener('click', () => this.switchTab('library-tab'));
+        document.getElementById('library-category-filter').addEventListener('change', (e) => this.renderCorpusLibrary(e.target.value));
+        document.getElementById('auto-format-btn').addEventListener('click', () => this.autoFormatCorpus());
+        document.getElementById('clear-corpus-btn').addEventListener('click', () => {
+          document.getElementById('training-text').value = '';
+          this.updateCorpusStats();
         });
 
-        // Training
         document.getElementById('start-train-btn').addEventListener('click', () => this.startTraining());
-        document.getElementById('stop-train-btn').addEventListener('click', () => this.stopRequested = true);
+        document.getElementById('stop-train-btn').addEventListener('click', () => { this.stopRequested = true; });
         document.getElementById('file-upload').addEventListener('change', (e) => this.handleFileUpload(e));
 
         // Export/Import
@@ -1217,11 +1631,94 @@
         document.getElementById('cancel-teach-btn').addEventListener('click', () => this.closeTeachModal());
         document.getElementById('submit-teach-btn').addEventListener('click', () => this.submitCorrection());
 
-        // Token estimator
-        document.getElementById('training-text').addEventListener('input', (e) => {
-          const tokens = e.target.value.split(/\s+/).filter(Boolean).length;
-          document.getElementById('corpus-tokens').innerText = `Tokens: ~${tokens}`;
-        });
+        document.getElementById('training-text').addEventListener('input', () => this.updateCorpusStats());
+      }
+
+      updateCorpusStats() {
+        const text = document.getElementById('training-text').value;
+        const tokens = text.split(/\s+/).filter(Boolean).length;
+        const qaCount = (text.match(/^user\s*:/gim) || []).length;
+        document.getElementById('corpus-stats').innerText = `Tokens: ${tokens} | Q&A Pairs: ${qaCount}`;
+      }
+
+      autoFormatCorpus() {
+        const area = document.getElementById('training-text');
+        let text = area.value;
+        if (!text.trim()) return;
+        text = text
+          .replace(/
+/g, '
+')
+          .replace(/^(user|human|q)\s*:\s*/gim, 'user: ')
+          .replace(/^(ai|bot|assistant|a)\s*:\s*/gim, 'ai: ')
+          .replace(/
+{3,}/g, '
+
+')
+          .trim();
+        area.value = text;
+        this.updateCorpusStats();
+        this.showToast("Formatted dialogue tags and spacing!");
+      }
+
+      renderCorpusLibrary(category) {
+        const grid = document.getElementById('library-grid');
+        const items = category === 'all'
+          ? CORPUS_LIBRARY
+          : CORPUS_LIBRARY.filter(item => item.category === category);
+
+        grid.innerHTML = items.map(item => `
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex flex-col justify-between gap-3 transition">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-300 border border-pink-500/30 font-mono">${item.badge}</span>
+                <span class="text-[10px] text-slate-500 font-mono">~${item.text.split(/\s+/).length} words</span>
+              </div>
+              <h3 class="text-sm font-bold text-white">${item.title}</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">${item.description}</p>
+              <pre class="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300 max-h-32 overflow-y-auto whitespace-pre-wrap">${this.escapeHTML(item.text)}</pre>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
+              <button onclick="app.copyLibraryPack('${item.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1.5 transition">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+              <button onclick="app.appendLibraryPack('${item.id}', false)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-brand-300 text-xs font-medium flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-plus"></i> Append to Trainer
+              </button>
+              <button onclick="app.appendLibraryPack('${item.id}', true)" class="ml-auto px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-bolt"></i> Load & Train
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      copyLibraryPack(id) {
+        const pack = CORPUS_LIBRARY.find(p => p.id === id);
+        if (!pack) return;
+        navigator.clipboard.writeText(pack.text);
+        this.showToast(`Copied "${pack.title}" to clipboard!`);
+      }
+
+      appendLibraryPack(id, autoTrain = false) {
+        const pack = CORPUS_LIBRARY.find(p => p.id === id);
+        if (!pack) return;
+        const area = document.getElementById('training-text');
+        if (autoTrain) {
+          area.value = pack.text;
+        } else {
+          area.value = area.value.trim() ? `${area.value.trim()}
+
+${pack.text}` : pack.text;
+        }
+        this.updateCorpusStats();
+        this.switchTab('train-tab');
+        if (autoTrain) {
+          this.startTraining();
+        } else {
+          this.showToast(`Added "${pack.title}" to Training Studio!`);
+        }
       }
 
       switchTab(targetId) {
@@ -1248,7 +1745,7 @@
       bindSlider(sliderId, displayId) {
         const slider = document.getElementById(sliderId);
         const display = document.getElementById(displayId);
-        slider.addEventListener('input', (e) => display.innerText = e.target.value);
+        slider.addEventListener('input', (e) => { display.innerText = e.target.value; });
       }
 
       showToast(message, type = 'info') {
@@ -1283,22 +1780,27 @@
         const model = activeObj.engine;
 
         const temp = parseFloat(document.getElementById('chat-temp').value);
+        const topK = parseInt(document.getElementById('chat-topk').value);
         const repPenalty = parseFloat(document.getElementById('chat-rep-penalty').value);
         const maxTokens = parseInt(document.getElementById('chat-max-tokens').value);
-
-        // Live Learn Mode
-        if (document.getElementById('live-learn-toggle').checked && activeObj.type === 'ngram') {
-          model.train(prompt);
-        }
 
         const typingBubble = this.appendTypingIndicator();
 
         setTimeout(() => {
-          const response = model.generate(prompt, maxTokens, temp, repPenalty);
+          const response = model.generate(prompt, maxTokens, temp, repPenalty, topK);
           typingBubble.remove();
           this.appendChatMessage('ai', response, prompt);
+
+          if (document.getElementById('live-learn-toggle').checked && prompt.split(/\s+/).length >= 3) {
+            const updatedCorpus = `${model.rawCorpus || ''}
+user: ${prompt}
+ai: ${response}`.trim();
+            model.rawCorpus = updatedCorpus;
+            if (model.memory) model.memory.indexText(updatedCorpus);
+          }
+
           this.updateStatsDisplay();
-        }, 200);
+        }, 160);
       }
 
       appendChatMessage(role, text, originalPrompt = '') {
@@ -1324,7 +1826,7 @@
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
                 ${this.escapeHTML(text)}
               </div>
-              <div class="flex items-center gap-2 px-1 text-[11px] text-slate-400">
+              <div class="flex items-center gap-3 px-1 text-[11px] text-slate-400">
                 <button class="teach-btn hover:text-amber-300 transition flex items-center gap-1" data-prompt="${this.escapeHTML(originalPrompt)}" data-response="${this.escapeHTML(text)}">
                   <i class="fa-solid fa-graduation-cap text-amber-400"></i> Correct / Teach
                 </button>
@@ -1361,6 +1863,21 @@
         return wrapper;
       }
 
+      exportChatTranscript() {
+        const msgs = Array.from(document.getElementById('chat-messages').children).map(el => el.innerText.trim()).join('
+
+---
+
+');
+        const blob = new Blob([msgs], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat-transcript-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
       // TEACH MODAL
       openTeachModal(prompt, currentResponse) {
         document.getElementById('teach-prompt-display').innerText = prompt || "(No user prompt)";
@@ -1378,31 +1895,29 @@
         if (!idealResponse) return;
 
         const activeObj = this.getActiveModelObj();
-        const combined = `User: ${prompt}\nAI: ${idealResponse}\n`;
+        const existing = activeObj.engine.rawCorpus || document.getElementById('training-text').value || '';
+        const newEntry = `user: ${prompt}
+ai: ${idealResponse}`;
+        const updatedCorpus = `${existing.trim()}
 
-        if (activeObj.type === 'neural') {
-          const dataset = activeObj.engine.prepareDataset(combined);
-          for (let ep = 0; ep < 25; ep++) {
-            for (let i = 0; i < dataset.X.length; i++) {
-              activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], 0.1);
-            }
-          }
-          activeObj.engine.isTrained = true;
-        } else {
-          activeObj.engine.train(combined);
-        }
+${newEntry}
 
-        this.saveModelsToStorage();
+${newEntry}`.trim();
+
+        document.getElementById('training-text').value = updatedCorpus;
+        this.updateCorpusStats();
+        this.quickTrainModel(activeObj, updatedCorpus, 40);
+
         this.updateStatsDisplay();
         this.closeTeachModal();
-        this.showToast("Response corrected and model retrained!");
+        this.showToast("Saved ideal response and retrained model!");
       }
 
       // TRAINING STUDIO
       async startTraining() {
         const text = document.getElementById('training-text').value.trim();
         if (!text) {
-          this.showToast("Please enter or load training text first!", "error");
+          this.showToast("Please enter text or load a pack from Corpus Library first!", "error");
           return;
         }
 
@@ -1417,26 +1932,29 @@
         const activeObj = this.getActiveModelObj();
         const selectedEngineType = document.querySelector('input[name="engine-type"]:checked').value;
 
-        // Switch active model engine type if changed
         if (activeObj.type !== selectedEngineType) {
           activeObj.type = selectedEngineType;
           activeObj.engine = selectedEngineType === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();
         }
 
         const epochs = parseInt(document.getElementById('param-epochs').value);
-        const lr = parseFloat(document.getElementById('param-lr').value);
+        const baseLr = parseFloat(document.getElementById('param-lr').value);
         const contextSize = parseInt(document.getElementById('param-context').value);
         const hiddenDim = parseInt(document.getElementById('param-hidden').value);
+        const augment = document.getElementById('param-augment').checked;
 
         if (activeObj.type === 'neural') {
           activeObj.engine.contextSize = contextSize;
           activeObj.engine.hiddenDim = hiddenDim;
-          const dataset = activeObj.engine.prepareDataset(text);
+          const dataset = activeObj.engine.prepareDataset(text, augment);
 
           const lossPoints = [];
 
           for (let epoch = 1; epoch <= epochs; epoch++) {
             if (this.stopRequested) break;
+
+            // Cosine learning rate decay for smooth convergence
+            const lr = baseLr * (0.2 + 0.8 * 0.5 * (1 + Math.cos(Math.PI * epoch / epochs)));
 
             let epochLoss = 0;
             for (let i = 0; i < dataset.X.length; i++) {
@@ -1452,7 +1970,7 @@
               document.getElementById('train-progress-bar').style.width = `${(epoch / epochs) * 100}%`;
               document.getElementById('current-loss-val').innerText = avgLoss.toFixed(4);
               this.drawLossChart(lossPoints);
-              await new Promise(r => setTimeout(r, 10));
+              await new Promise(r => setTimeout(r, 8));
             }
           }
 
@@ -1461,7 +1979,7 @@
         } else {
           activeObj.engine.train(text);
           document.getElementById('train-progress-bar').style.width = "100%";
-          document.getElementById('current-loss-val').innerText = "0.000 (Exact)";
+          document.getElementById('current-loss-val').innerText = "0.000 (Indexed)";
         }
 
         this.isTraining = false;
@@ -1472,7 +1990,7 @@
 
         this.saveModelsToStorage();
         this.updateStatsDisplay();
-        this.showToast(`Model '${activeObj.name}' trained successfully!`);
+        this.showToast(`Model '${activeObj.name}' trained! Switch to Chat Studio to test.`);
       }
 
       drawLossChart(lossPoints) {
@@ -1491,47 +2009,6 @@
         svg.setAttribute('points', pts);
       }
 
-      loadPresetText(preset) {
-        const area = document.getElementById('training-text');
-        const presets = {
-          assistant: `User: Hello!
-AI: Hi there! How can I assist you today?
-User: What are you?
-AI: I am a custom JavaScript AI model trained directly in your web browser.
-User: Where do you run?
-AI: I run completely offline and locally inside your browser on CPU or GPU.
-User: Thank you!
-AI: You are very welcome! Let me know if you have more questions.`,
-
-          science: `User: What is a star?
-AI: A star is a luminous sphere of plasma held together by its own gravity.
-User: How does the sun produce heat?
-AI: The Sun produces heat through nuclear fusion in its core, fusing hydrogen into helium.
-User: What is gravity?
-AI: Gravity is a fundamental force where objects with mass attract each other.`,
-
-          coder: `User: What is HTML?
-AI: HTML stands for HyperText Markup Language and structures web pages.
-User: What is JavaScript?
-AI: JavaScript is a programming language that makes websites interactive.
-User: What is backpropagation?
-AI: Backpropagation is an algorithm used to calculate gradients for neural network weights.`,
-
-          roleplay: `User: Greetings traveler!
-AI: Ah, greetings adventurer! Welcome to the ancient library of Eloria.
-User: What secret spells exist here?
-AI: Within these archives lie lost spells of elemental fire, storm weaving, and light projection.
-User: Teach me a spell!
-AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
-
-          clear: ``
-        };
-
-        area.value = presets[preset] || '';
-        const tokens = area.value.split(/\s+/).filter(Boolean).length;
-        document.getElementById('corpus-tokens').innerText = `Tokens: ~${tokens}`;
-      }
-
       handleFileUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -1539,8 +2016,7 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
         const reader = new FileReader();
         reader.onload = (evt) => {
           document.getElementById('training-text').value = evt.target.result;
-          const tokens = evt.target.result.split(/\s+/).filter(Boolean).length;
-          document.getElementById('corpus-tokens').innerText = `Tokens: ~${tokens}`;
+          this.updateCorpusStats();
           this.showToast(`Loaded ${file.name}`);
         };
         reader.readAsText(file);
@@ -1559,12 +2035,10 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
       handleSaveNewModel() {
         const name = document.getElementById('modal-model-name').value.trim();
         const type = document.getElementById('modal-model-type').value;
-
         if (!name) {
           this.showToast("Please enter a model name!", "error");
           return;
         }
-
         this.createNewModel(name, type);
         this.closeModelModal();
         this.showToast(`Created new model: ${name}`);
@@ -1573,9 +2047,8 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
       refreshModelSelect() {
         const select = document.getElementById('active-model-select');
         select.innerHTML = this.models.map(m => `
-          <option value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : 'N-Gram'})</option>
+          <option value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : 'TF-IDF'})</option>
         `).join('');
-
         this.renderModelsHubCards();
       }
 
@@ -1584,18 +2057,20 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
         container.innerHTML = this.models.map(m => {
           const isActive = m.id === this.activeModelId;
           const vocab = m.engine.tokenizer ? m.engine.tokenizer.size() : 0;
+          const qaCount = m.engine.memory ? m.engine.memory.qaPairs.length : 0;
           return `
             <div class="p-4 rounded-xl glass-panel border ${isActive ? 'border-brand-500 bg-brand-950/20' : 'border-slate-800'} space-y-3">
               <div class="flex items-center justify-between">
                 <div>
                   <span class="font-bold text-sm text-white block">${this.escapeHTML(m.name)}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">${m.type === 'neural' ? 'Neural MLP Network' : 'Hybrid N-Gram Context'}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${m.type === 'neural' ? 'Turn-Anchored Neural MLP' : 'Semantic TF-IDF + N-Gram'}</span>
                 </div>
                 ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 text-[10px] font-semibold border border-brand-500/40">Active</span>' : ''}
               </div>
 
-              <div class="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400 border-t border-b border-slate-800/60 py-2">
+              <div class="grid grid-cols-3 gap-2 text-[11px] font-mono text-slate-400 border-t border-b border-slate-800/60 py-2">
                 <div>Vocab: <span class="text-slate-200">${vocab}</span></div>
+                <div>Q&As: <span class="text-emerald-400">${qaCount}</span></div>
                 <div>Epochs: <span class="text-slate-200">${m.engine.epochsTrained || (m.engine.isTrained ? 1 : 0)}</span></div>
               </div>
 
@@ -1611,9 +2086,14 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
 
       selectModel(id) {
         this.activeModelId = id;
+        const active = this.getActiveModelObj();
+        if (active.engine.rawCorpus) {
+          document.getElementById('training-text').value = active.engine.rawCorpus;
+          this.updateCorpusStats();
+        }
         this.refreshModelSelect();
         this.updateStatsDisplay();
-        this.showToast(`Active model: ${this.getActiveModelObj().name}`);
+        this.showToast(`Active model: ${active.name}`);
       }
 
       updateStatsDisplay() {
@@ -1622,14 +2102,17 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
 
         document.getElementById('chat-model-title').innerText = `Chatting with: ${activeObj.name}`;
         document.getElementById('side-model-name').innerText = activeObj.name;
-        document.getElementById('side-engine-badge').innerText = activeObj.type === 'neural' ? 'Neural MLP' : 'N-Gram';
+        document.getElementById('side-engine-badge').innerText = activeObj.type === 'neural' ? 'Neural MLP' : 'TF-IDF';
 
         const vocabSize = model.tokenizer ? model.tokenizer.size() : 0;
         const paramsCount = model.getNumParameters ? model.getNumParameters() : 0;
+        const qaCount = model.memory ? model.memory.qaPairs.length : 0;
 
         document.getElementById('side-vocab').innerText = `${vocabSize} tokens`;
+        document.getElementById('side-qa-count').innerText = `${qaCount} pairs`;
         document.getElementById('side-params').innerText = paramsCount.toLocaleString();
         document.getElementById('side-epochs').innerText = model.epochsTrained || (model.isTrained ? 1 : 0);
+        this.renderModelsHubCards();
       }
 
       // IMPORT / EXPORT
@@ -1640,9 +2123,7 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
           type: activeObj.type,
           data: activeObj.engine.toJSON()
         };
-
-        const jsonStr = JSON.stringify(payload, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1657,9 +2138,7 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
           type: m.type,
           data: m.engine.toJSON()
         }));
-
-        const jsonStr = JSON.stringify({ isBundle: true, models: bundle }, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify({ isBundle: true, models: bundle }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1706,7 +2185,7 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
             createdAt: m.createdAt,
             engineData: m.engine.toJSON()
           }));
-          localStorage.setItem('teachable_ai_models_v2', JSON.stringify(serializable));
+          localStorage.setItem('teachable_ai_models_v3', JSON.stringify(serializable));
         } catch (e) {
           console.warn("LocalStorage quota exceeded");
         }
@@ -1714,9 +2193,8 @@ AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
 
       loadModelsFromStorage() {
         try {
-          const raw = localStorage.getItem('teachable_ai_models_v2');
+          const raw = localStorage.getItem('teachable_ai_models_v3');
           if (!raw) return;
-
           const parsed = JSON.parse(raw);
           this.models = parsed.map(m => {
             const engine = m.type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();

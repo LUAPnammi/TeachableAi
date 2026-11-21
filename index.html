@@ -1729,10 +1729,26 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         document.getElementById('download-tara-btn')?.addEventListener('click', () => this.prepareLocalTara());
         document.getElementById('open-tara-card-btn')?.addEventListener('click', () => window.open('https://huggingface.co/aungkomyint/tara1.1', '_blank', 'noopener'));
         this.renderCorpusLibrary('all');
-        this.loadModelsFromStorage().then(() => this.initializeModels()).catch(err => {
-          console.error('Model restore failed:', err);
-          this.initializeModels();
-        });
+        // Never hold the whole interface hostage while IndexedDB restores. Restore
+        // localStorage synchronously (loadModelsFromStorage does this before its first
+        // await), initialize the app immediately, then finish IndexedDB restoration
+        // in the background. This keeps Chat, model selection, and Tara download usable
+        // even when a stale/blocked database connection never completes.
+        const restoreTask = this.loadModelsFromStorage();
+        this.initializeModels();
+        restoreTask.then(() => {
+          if (this.models.length) {
+            if (!this.models.some(m => m.id === this.activeModelId)) this.activeModelId = this.models[0].id;
+            this.refreshModelSelect();
+            const active = this.getActiveModelObj();
+            if (active) {
+              document.getElementById('training-text').value = active.engine.rawCorpus || '';
+              document.getElementById('chat-model-title').innerText = 'Chatting with: ' + active.name;
+              document.getElementById('side-model-name').innerText = active.name;
+              this.updateStatsDisplay();
+            }
+          }
+        }).catch(err => console.warn('Background model restore failed; app remains usable:', err));
       }
 
       initializeModels() {
@@ -2121,7 +2137,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       }
 
       runEvaluation() {
-        if (this.isRestoring) { this.showToast('Loading saved models… please wait.'); return; }
+        if (this.isRestoring) this.isRestoring = false;
         const active=this.getActiveModelObj();
         const prompts=document.getElementById('eval-prompts').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,100);
         const gold=document.getElementById('eval-gold').value.split(/\r?\n/).map(x=>x.trim());
@@ -2317,7 +2333,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const inputEl = document.getElementById('chat-input');
         const prompt = inputEl.value.trim();
         if (!prompt) return;
-        if (this.isRestoring || !this.getActiveModelObj()) { this.showToast('Loading saved models… please wait.'); return; }
+        if (!this.referenceMode && !this.getActiveModelObj()) { this.showToast('Create or select a model first.', 'error'); return; }
 
         inputEl.value = '';
         this.appendChatMessage('user', prompt);
@@ -2593,7 +2609,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
       // TRAINING STUDIO
       async startTraining() {
-        if (this.isRestoring) { this.showToast('Loading saved models… please wait.'); return; }
+        if (this.isRestoring) this.isRestoring = false;
         if (this.isTraining) return;
         if (this.isStarterTraining) { this.showToast('Starter training is finishing; please try again in a moment.'); return; }
         const inputText = document.getElementById('training-text').value.trim();
@@ -2762,7 +2778,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
       // MODEL MODAL
       openModelModal() {
-        if (this.isRestoring) { this.showToast('Loading saved models… please wait.'); return; }
+        if (this.isRestoring) this.isRestoring = false;
         document.getElementById('modal-model-name').value = '';
         const att=document.querySelector('#modal-model-type option[value="attention"]');
         const unlocked=this.getResearchPoints()>=300;

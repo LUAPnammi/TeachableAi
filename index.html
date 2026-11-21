@@ -2,8 +2,11 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Teachable AI Studio v3.0 - Multi-Model Browser Engine</title>
+  <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>Teachable AI Studio v4.0 - CPU & Mobile First Model Lab</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -67,9 +70,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">v3.0 Pro</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">v4.0 Pro</span>
         </div>
-        <p class="text-xs text-slate-400 hidden sm:block">Zero-Dependency Browser Neural & Semantic AI Trainer</p>
+        <p class="text-xs text-slate-400 hidden sm:block">Browser-based · CPU-first · local model training</p>
       </div>
     </div>
 
@@ -109,6 +112,7 @@
           <i class="fa-solid fa-cubes text-emerald-400 text-base"></i>
           <span>Models Hub</span>
         </button>
+        <button tab-target="eval-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0"><i class="fa-solid fa-flask text-amber-400 text-base"></i><span>Evaluation</span></button>
         <button tab-target="guide-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
           <i class="fa-solid fa-book-open text-amber-400 text-base"></i>
           <span>How To Guide</span>
@@ -201,7 +205,7 @@
             </div>
             <div class="flex flex-col gap-1">
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
-                Welcome to <b>Teachable AI Studio v3.0</b>! I have been pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away.
+                Welcome to <b>Teachable AI Studio v4.0</b>! I have been pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away.
                 <br><br>
                 <span class="text-xs text-slate-400">
                   <i class="fa-solid fa-sparkles text-brand-400 mr-1"></i>
@@ -331,6 +335,7 @@
             </div>
 
             <textarea id="training-text" rows="9" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none transition leading-relaxed" placeholder="Paste user:/ai: dialogue pairs OR raw knowledge paragraphs here (or insert packs from the Corpus Library tab)..."></textarea>
+            <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2"><p id="corpus-quality" class="text-[11px] text-slate-400 leading-relaxed">Dataset quality: waiting for corpus…</p><button id="clean-duplicates-btn" class="text-[11px] text-brand-300 hover:text-brand-200 border border-brand-500/30 rounded-md px-2 py-1">Remove duplicate lines</button><button id="export-corpus-btn" class="text-[11px] text-slate-300 hover:text-white border border-slate-700 rounded-md px-2 py-1">Export corpus .txt</button></div>
           </div>
 
           <!-- Hyperparameters -->
@@ -364,6 +369,17 @@
             </div>
           </div>
 
+          <!-- CPU / phone friendly profile -->
+          <div class="p-3 rounded-xl border border-brand-500/30 bg-brand-950/20 space-y-2">
+            <label for="training-profile" class="text-xs font-semibold text-brand-200 flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button"></i> Hardware profile</label>
+            <select id="training-profile" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100">
+              <option value="phone">Phone / low-memory CPU — recommended for mobile</option>
+              <option value="balanced" selected>Balanced CPU — recommended for most laptops</option>
+              <option value="large">Large CPU — more memory and time</option>
+            </select>
+            <p id="training-profile-note" class="text-[11px] leading-relaxed text-slate-400">Worker-based training keeps the interface responsive. Balanced profile limits dataset and vocabulary to protect CPU and RAM.</p>
+          </div>
+
           <!-- Action & Metrics -->
           <div class="space-y-3">
             <div class="flex items-center gap-3">
@@ -386,6 +402,7 @@
                 </div>
                 <div class="text-slate-400">
                   Loss: <span id="current-loss-val" class="text-brand-400 font-bold">N/A</span>
+                  <span class="ml-2 text-slate-500">Val: <span id="validation-loss-val" class="text-amber-300 font-bold">N/A</span></span>
                 </div>
               </div>
 
@@ -492,20 +509,30 @@
         </div>
       </section>
 
-      <!-- ================= TAB 5: HOW TO GUIDE ================= -->
+      <!-- ================= TAB 5: EVALUATION BENCH ================= -->
+      <section id="eval-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 bg-slate-900/50"><h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-flask text-amber-400"></i> Model Evaluation Bench</h2><p class="text-xs text-slate-400 mt-1">Run repeatable prompts against the active model. This is a qualitative test bench, not a certified benchmark score.</p></div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-3"><label for="eval-prompts" class="text-xs font-semibold text-slate-300">Test prompts (one per line)</label><textarea id="eval-prompts" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500">hi
+what is your name
+what is a neural network
+what is photosynthesis
+tell me a joke</textarea><div class="flex flex-wrap gap-2"><button id="run-eval-btn" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">Run evaluation</button><button id="export-eval-btn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Export results JSON</button><button id="compare-eval-btn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Compare all models</button></div><p id="eval-summary" class="text-xs text-slate-400">No evaluation run yet.</p><div id="eval-results" class="space-y-2"></div></div>
+      </section>
+
+      <!-- ================= TAB 6: HOW TO GUIDE ================= -->
       <section id="guide-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
         <div class="p-4 border-b border-slate-800 bg-slate-900/50">
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-400"></i>
-            How To Train & Tune Your Browser AI (v3.0)
+            How To Train & Tune Your Browser AI (v4.0)
           </h2>
-          <p class="text-xs text-slate-400">Why v3.0 stops repetition loops and how to combine Q&A pairs with raw paragraphs</p>
+          <p class="text-xs text-slate-400">Why v4.0 stops repetition loops and how to combine Q&A pairs with raw paragraphs</p>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs leading-relaxed text-slate-300">
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
             <h3 class="text-sm font-bold text-brand-400 flex items-center gap-2">
-              <i class="fa-solid fa-anchor"></i> 1. What Changed in the v3.0 Trainer?
+              <i class="fa-solid fa-anchor"></i> 1. What Changed in the v4.0 Trainer?
             </h3>
             <p>
               In v2.0, typing <code>hi</code> only fed the single word <code>hi</code> into the neural network without the <code>user: ... ai:</code> turn markers it saw during training, causing it to drift into random sentences.
@@ -848,17 +875,18 @@
      * ENHANCED TOKENIZER (Preserves turn structure & clean punctuation)
      */
     class Tokenizer {
-      constructor() {
+      constructor(includeCharacterFallback = true) {
         this.PAD = '<pad>';
         this.UNK = '<unk>';
         this.BOS = '<bos>';
         this.EOS = '<eos>';
         this.SEP = '<sep>';
+        this.SUBWORD_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789'_-áéíóúñü";
 
         this.vocab = new Map();
         this.idToToken = [];
-
         [this.PAD, this.UNK, this.BOS, this.EOS, this.SEP].forEach(t => this.addToken(t));
+        if (includeCharacterFallback) Array.from(this.SUBWORD_CHARS).forEach(ch => this.addToken('~c~' + ch));
       }
 
       addToken(token) {
@@ -882,17 +910,40 @@
       }
 
       encode(tokens) {
-        return tokens.map(t => this.vocab.has(t) ? this.vocab.get(t) : this.vocab.get(this.UNK));
+        const encoded = [];
+        for (const token of tokens) {
+          if (this.vocab.has(token)) { encoded.push(this.vocab.get(token)); continue; }
+          const chars = Array.from(String(token).toLowerCase());
+          if (/^[\w'_-]+$/u.test(token) && chars.length && chars.every(ch => this.vocab.has('~c~' + ch))) {
+            chars.forEach(ch => encoded.push(this.vocab.get('~c~' + ch)));
+          } else encoded.push(this.vocab.get(this.UNK));
+        }
+        return encoded;
       }
 
       decode(ids) {
-        return ids.map(id => this.idToToken[id] || this.UNK)
-                  .filter(t => ![this.PAD, this.BOS, this.EOS, this.SEP, this.UNK].includes(t));
+        const special = new Set([this.PAD, this.BOS, this.EOS, this.SEP, this.UNK]);
+        const output = []; let charBuffer = '';
+        for (const id of ids) {
+          const token = this.idToToken[id] || this.UNK;
+          if (token.startsWith('~c~')) { charBuffer += token.slice(3); continue; }
+          if (charBuffer) { output.push(charBuffer); charBuffer = ''; }
+          if (!special.has(token)) output.push(token);
+        }
+        if (charBuffer) output.push(charBuffer);
+        return output;
       }
 
-      buildVocabFromText(text) {
+      buildVocabFromText(text, maxVocab = Infinity) {
         const tokens = this.tokenize(text);
-        tokens.forEach(t => this.addToken(t));
+        if (Number.isFinite(maxVocab) && maxVocab > this.idToToken.length) {
+          const counts = new Map();
+          tokens.forEach(t => counts.set(t, (counts.get(t) || 0) + 1));
+          const reserved = new Set(this.idToToken);
+          [...counts.entries()].filter(([t]) => !reserved.has(t)).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0])).slice(0, Math.max(0, maxVocab - this.idToToken.length)).forEach(([t]) => this.addToken(t));
+        } else if (!Number.isFinite(maxVocab)) {
+          tokens.forEach(t => this.addToken(t));
+        }
         return tokens;
       }
 
@@ -1069,16 +1120,18 @@
         return this.E.length + this.W1.length + this.b1.length + this.W2.length + this.b2.length;
       }
 
-      prepareDataset(text, augmentShort = true) {
+      prepareDataset(text, augmentShort = true, maxExamples = Infinity, maxVocab = Infinity) {
         this.rawCorpus = text;
         this.memory.indexText(text);
+        // Training is a fresh fit: rebuild tokenizer/vocabulary to avoid stale tokens and runaway model size.
+        this.tokenizer = new Tokenizer();
 
         let processedText = text;
         if (augmentShort && text.length < 2500) {
           processedText = text + '\n\n' + text + '\n\n' + text;
         }
 
-        const tokens = this.tokenizer.buildVocabFromText(processedText);
+        const tokens = this.tokenizer.buildVocabFromText(processedText, maxVocab);
         this.initWeights();
 
         const encoded = this.tokenizer.encode(tokens);
@@ -1086,7 +1139,8 @@
         const Y = [];
         const padId = this.tokenizer.vocab.get(this.tokenizer.PAD);
 
-        for (let i = 0; i < encoded.length; i++) {
+        const sampleStride = Number.isFinite(maxExamples) && maxExamples > 0 ? Math.max(1, Math.ceil(encoded.length / maxExamples)) : 1;
+        for (let i = 0; i < encoded.length; i += sampleStride) {
           const context = [];
           for (let c = this.contextSize; c > 0; c--) {
             const idx = i - c;
@@ -1162,9 +1216,9 @@
           let sumGrad = 0;
           for (let k = 0; k < V; k++) {
             const grad = dLogits[k];
+            sumGrad += grad * this.W2[j * V + k]; // propagate through pre-update weight
             this.W2[j * V + k] -= lr * grad * hOut[j];
             this.b2[k] -= lr * grad;
-            sumGrad += grad * this.W2[j * V + k];
           }
           dHOut[j] = sumGrad;
         }
@@ -1179,8 +1233,8 @@
           let sumGrad = 0;
           for (let j = 0; j < this.hiddenDim; j++) {
             const grad = dHIn[j];
+            sumGrad += grad * this.W1[i * this.hiddenDim + j]; // propagate through pre-update weight
             this.W1[i * this.hiddenDim + j] -= lr * grad * xEmb[i];
-            sumGrad += grad * this.W1[i * this.hiddenDim + j];
           }
           dXEmb[i] = sumGrad;
         }
@@ -1316,7 +1370,7 @@
         this.epochsTrained = data.epochsTrained || 0;
         this.rawCorpus = data.rawCorpus || '';
 
-        this.tokenizer = new Tokenizer();
+        this.tokenizer = new Tokenizer(false);
         if (data.vocab) data.vocab.forEach(t => this.tokenizer.addToken(t));
         if (this.rawCorpus) this.memory.indexText(this.rawCorpus);
 
@@ -1345,6 +1399,8 @@
       train(text) {
         this.rawCorpus = text;
         this.memory.indexText(text);
+        this.tokenizer = new Tokenizer();
+        this.ngrams = new Map();
         const tokens = this.tokenizer.buildVocabFromText(text);
 
         for (let order = 1; order <= 3; order++) {
@@ -1354,6 +1410,28 @@
             if (!this.ngrams.has(context)) this.ngrams.set(context, new Map());
             const countMap = this.ngrams.get(context);
             countMap.set(nextToken, (countMap.get(nextToken) || 0) + 1);
+          }
+        }
+        this.isTrained = true;
+      }
+
+      async trainAsync(text, maxChars = 50000, shouldStop = () => false) {
+        this.rawCorpus = String(text || '').slice(0, maxChars);
+        this.memory.indexText(this.rawCorpus);
+        this.tokenizer = new Tokenizer();
+        const tokens = this.tokenizer.buildVocabFromText(this.rawCorpus);
+        this.ngrams = new Map();
+        let processed = 0;
+        for (let order = 1; order <= 3; order++) {
+          for (let i = 0; i < tokens.length - order; i++) {
+            if (shouldStop()) { this.isTrained = this.ngrams.size > 0; return; }
+            const context = tokens.slice(i, i + order).join('|');
+            const nextToken = tokens[i + order];
+            if (!this.ngrams.has(context)) this.ngrams.set(context, new Map());
+            const countMap = this.ngrams.get(context);
+            countMap.set(nextToken, (countMap.get(nextToken) || 0) + 1);
+            processed++;
+            if (processed % 1500 === 0) await new Promise(resolve => setTimeout(resolve, 0));
           }
         }
         this.isTrained = true;
@@ -1431,7 +1509,7 @@
       }
 
       fromJSON(data) {
-        this.tokenizer = new Tokenizer();
+        this.tokenizer = new Tokenizer(false);
         if (data.vocab) data.vocab.forEach(t => this.tokenizer.addToken(t));
         this.rawCorpus = data.rawCorpus || '';
         if (this.rawCorpus) this.memory.indexText(this.rawCorpus);
@@ -1450,20 +1528,29 @@
       constructor() {
         this.models = [];
         this.activeModelId = null;
+        this.isRestoring = true;
         this.isTraining = false;
         this.stopRequested = false;
+        this.trainingWorker = null;
+        this.lastEvaluation = [];
 
         this.initUI();
         this.renderCorpusLibrary('all');
-        this.loadModelsFromStorage();
+        this.loadModelsFromStorage().then(() => this.initializeModels()).catch(err => {
+          console.error('Model restore failed:', err);
+          this.initializeModels();
+        });
+      }
 
+      initializeModels() {
+        this.isRestoring = false;
         if (this.models.length === 0) {
           const starter = this.createNewModel('Studio Assistant', 'neural');
           const defaultCorpus = CORPUS_LIBRARY[0].text + '\n\n' + CORPUS_LIBRARY[1].text;
           document.getElementById('training-text').value = defaultCorpus;
           this.updateCorpusStats();
-          // Train in small asynchronous batches so startup never locks the UI.
-          this.quickTrainModel(starter, defaultCorpus, 60).catch(err => {
+          // Small starter run keeps first launch quick on phones and CPUs.
+          this.quickTrainModel(starter, defaultCorpus, 8).catch(err => {
             console.error('Starter training failed:', err);
             this.showToast('Starter model training failed. You can retrain it in Train Studio.', 'error');
           });
@@ -1475,7 +1562,6 @@
             this.updateCorpusStats();
           }
         }
-
         this.refreshModelSelect();
         this.updateStatsDisplay();
       }
@@ -1626,7 +1712,9 @@
           document.getElementById('train-status-text').innerText = 'Training failed';
           this.showToast('Training failed: ' + (err.message || 'unexpected error'), 'error');
         }));
-        document.getElementById('stop-train-btn').addEventListener('click', () => { this.stopRequested = true; });
+        document.getElementById('stop-train-btn').addEventListener('click', () => { this.stopRequested = true; if (this.trainingWorker) this.trainingWorker.postMessage({ type: 'stop' }); });
+        document.getElementById('training-profile').addEventListener('change', () => this.updateTrainingProfileNote());
+        this.updateTrainingProfileNote();
         document.getElementById('file-upload').addEventListener('change', (e) => this.handleFileUpload(e));
 
         // Export/Import
@@ -1640,6 +1728,11 @@
         document.getElementById('submit-teach-btn').addEventListener('click', () => this.submitCorrection());
 
         document.getElementById('training-text').addEventListener('input', () => this.updateCorpusStats());
+        document.getElementById('clean-duplicates-btn').addEventListener('click', () => this.cleanCorpusDuplicates());
+        document.getElementById('run-eval-btn').addEventListener('click', () => this.runEvaluation());
+        document.getElementById('export-eval-btn').addEventListener('click', () => this.exportEvaluation());
+        document.getElementById('compare-eval-btn').addEventListener('click', () => this.compareEvaluation());
+        document.getElementById('export-corpus-btn').addEventListener('click', () => this.exportCorpus());
       }
 
       updateCorpusStats() {
@@ -1647,6 +1740,55 @@
         const tokens = text.split(/\s+/).filter(Boolean).length;
         const qaCount = (text.match(/^user\s*:/gim) || []).length;
         document.getElementById('corpus-stats').innerText = 'Tokens: ' + tokens + ' | Q&A Pairs: ' + qaCount;
+        const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+        const duplicates = lines.length - new Set(lines).size;
+        const aiCount = (text.match(/^(ai|assistant|bot)\s*:/gim) || []).length;
+        const quality = document.getElementById('corpus-quality');
+        if (quality) quality.textContent = `${text.length.toLocaleString()} chars · ${lines.length.toLocaleString()} lines · ${duplicates} duplicate lines · ${Math.abs(qaCount-aiCount)} unmatched user/AI tag count`;
+      }
+
+      cleanCorpusDuplicates() {
+        const area = document.getElementById('training-text');
+        const lines = area.value.replace(/\r\n/g,'\n').split('\n');
+        const seen = new Set(), cleaned = [];
+        for (const line of lines) { const key=line.trim().toLowerCase(); if(key && seen.has(key)) continue; if(key) seen.add(key); cleaned.push(line); }
+        area.value = cleaned.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+        this.updateCorpusStats(); this.showToast('Removed exact duplicate lines. Review the corpus before training.');
+      }
+
+      runEvaluation() {
+        if (this.isRestoring) { this.showToast('Loading saved models… please wait.'); return; }
+        const active=this.getActiveModelObj();
+        const prompts=document.getElementById('eval-prompts').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,100);
+        if(!active || !prompts.length){this.showToast('Add at least one test prompt.','error');return;}
+        const results=prompts.map(prompt=>({prompt,response:active.engine.generate(prompt,45,0.35,1.35,5),model:active.name,modelType:active.type,createdAt:new Date().toISOString()}));
+        this.lastEvaluation=results;
+        document.getElementById('eval-results').innerHTML=results.map((r,i)=>`<article class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1"><div class="text-[11px] text-brand-300 font-semibold">${i+1}. ${this.escapeHTML(r.prompt)}</div><p class="text-xs text-slate-200 whitespace-pre-wrap">${this.escapeHTML(r.response||'(empty response)')}</p></article>`).join('');
+        document.getElementById('eval-summary').textContent=`${results.length} prompts tested against “${active.name}”. Compare outputs after each training run; no automatic quality score is claimed.`;
+      }
+
+      compareEvaluation() {
+        const prompts=document.getElementById('eval-prompts').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,30);
+        if(!prompts.length || !this.models.length){this.showToast('Add prompts and at least one model.', 'error');return;}
+        const results=[];
+        for(const model of this.models) for(const prompt of prompts) results.push({prompt,response:model.engine.generate(prompt,35,0.35,1.35,5),model:model.name,modelType:model.type,createdAt:new Date().toISOString()});
+        this.lastEvaluation=results;
+        const box=document.getElementById('eval-results');
+        box.innerHTML=results.map((r,i)=>`<article class=\"p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1\"><div class=\"text-[11px] text-amber-300 font-semibold\">${this.escapeHTML(r.model)} · ${this.escapeHTML(r.prompt)}</div><p class=\"text-xs text-slate-200 whitespace-pre-wrap\">${this.escapeHTML(r.response||'(empty response)')}</p></article>`).join('');
+        document.getElementById('eval-summary').textContent=`Compared ${this.models.length} saved model(s) on ${prompts.length} prompt(s). Review answers manually; the app does not claim an automatic correctness score.`;
+      }
+
+      exportCorpus() {
+        const text=document.getElementById('training-text').value;
+        if(!text.trim()){this.showToast('There is no corpus to export.','error');return;}
+        const blob=new Blob([text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+        a.href=url;a.download='training-corpus.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      }
+
+      exportEvaluation() {
+        if(!this.lastEvaluation.length){this.showToast('Run an evaluation first.','error');return;}
+        const blob=new Blob([JSON.stringify({appVersion:'4.0',results:this.lastEvaluation},null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='teachable-ai-evaluation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
       }
 
       autoFormatCorpus() {
@@ -1771,6 +1913,7 @@
         const inputEl = document.getElementById('chat-input');
         const prompt = inputEl.value.trim();
         if (!prompt) return;
+        if (this.isRestoring || !this.getActiveModelObj()) { this.showToast('Loading saved models… please wait.'); return; }
 
         inputEl.value = '';
         this.appendChatMessage('user', prompt);
@@ -1905,17 +2048,90 @@
         }
       }
 
+      // CPU / mobile training presets. No GPU or cloud service is required.
+      updateTrainingProfileNote() {
+        const profile = document.getElementById('training-profile')?.value || 'balanced';
+        const notes = {
+          phone: 'Phone-safe limits: 180-token vocabulary, 300 examples, 16 hidden units, up to 12 epochs. CPU only; no GPU needed.',
+          balanced: 'Balanced limits: 320-token vocabulary, 700 examples, 32 hidden units, up to 25 epochs. Web Worker on hosted pages.',
+          large: 'Large CPU limits: 480-token vocabulary, 1,200 examples, 40 hidden units, up to 40 epochs. Avoid this profile on phones.'
+        };
+        const note = document.getElementById('training-profile-note');
+        if (note) note.textContent = notes[profile] || notes.balanced;
+      }
+
+      async runWorkerTraining(activeObj, text, config, lossPoints) {
+        if (!('Worker' in window) || location.protocol === 'file:') return false;
+        let worker;
+        try {
+          worker = new Worker(new URL('./training-worker.js', document.baseURI));
+        } catch (e) {
+          console.warn('Training Worker unavailable; using responsive main-thread fallback.', e);
+          return false;
+        }
+        this.trainingWorker = worker;
+        const engine = activeObj.engine;
+        const previous = engine.toJSON();
+        const modelName = activeObj.name;
+        return await new Promise((resolve, reject) => {
+          let finished = false;
+          const cleanup = () => { worker.terminate(); if (this.trainingWorker === worker) this.trainingWorker = null; };
+          worker.onmessage = (event) => {
+            const msg = event.data || {};
+            if (msg.type === 'progress') {
+              lossPoints.push(msg.loss);
+              engine.lossHistory.push(msg.loss);
+              document.getElementById('train-progress-bar').style.width = (msg.epoch / config.epochs * 100) + '%';
+              document.getElementById('current-loss-val').innerText = Number(msg.loss).toFixed(4);
+              document.getElementById('validation-loss-val').innerText = Number.isFinite(msg.validationLoss) ? Number(msg.validationLoss).toFixed(4) : 'N/A';
+              document.getElementById('train-status-text').innerText = `${msg.profileLabel} · epoch ${msg.epoch}/${config.epochs} · ${msg.examples} samples`;
+              this.drawLossChart(lossPoints);
+              return;
+            }
+            if (msg.type === 'done' && !finished) {
+              finished = true;
+              if (msg.model) {
+                // Worker output is a normal portable model checkpoint.
+                msg.model.lossHistory = [...(previous.lossHistory || []), ...(msg.model.lossHistory || [])].slice(-500);
+                msg.model.epochsTrained = (previous.epochsTrained || 0) + (msg.completedEpochs || 0);
+                msg.model.rawCorpus = text;
+                engine.fromJSON(msg.model);
+                engine.isTrained = true;
+              }
+              resolve(true);
+              cleanup();
+              return;
+            }
+            if (msg.type === 'error' && !finished) {
+              finished = true;
+              reject(new Error(msg.message || 'Worker training failed'));
+              cleanup();
+            }
+          };
+          worker.onerror = (event) => {
+            if (finished) return;
+            finished = true;
+            cleanup();
+            console.error('Training Worker error:', event.message);
+            resolve(false); // fallback below; no worker state was applied
+          };
+          worker.postMessage({ type: 'train', text, config, profile: config.profile, modelName });
+        });
+      }
+
       // TRAINING STUDIO
       async startTraining() {
+        if (this.isRestoring) { this.showToast('Loading saved models… please wait.'); return; }
         if (this.isTraining) return;
+        if (this.isStarterTraining) { this.showToast('Starter training is finishing; please try again in a moment.'); return; }
         const text = document.getElementById('training-text').value.trim();
         if (!text) {
           this.showToast("Please enter text or load a pack from Corpus Library first!", "error");
           return;
         }
 
-        if (text.length > 500000) {
-          this.showToast('Corpus is over 500,000 characters. Please split it into smaller files.', 'error');
+        if (text.length > 250000) {
+          this.showToast('Corpus is over 250,000 characters. Split it into focused datasets for safer phone/CPU training.', 'error');
           return;
         }
         this.isTraining = true;
@@ -1925,6 +2141,7 @@
         document.getElementById('stop-train-btn').disabled = false;
         document.getElementById('train-status-dot').className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
         document.getElementById('train-status-text').innerText = "Training active model...";
+        document.getElementById('validation-loss-val').innerText = 'N/A';
 
         const activeObj = this.getActiveModelObj();
         const selectedEngineType = document.querySelector('input[name="engine-type"]:checked').value;
@@ -1941,46 +2158,76 @@
         const augment = document.getElementById('param-augment').checked;
 
         if (activeObj.type === 'neural') {
-          activeObj.engine.contextSize = contextSize;
-          activeObj.engine.hiddenDim = hiddenDim;
-          const dataset = activeObj.engine.prepareDataset(text, augment);
-          const MAX_TRAINING_EXAMPLES = 15000;
-          if (dataset.X.length > MAX_TRAINING_EXAMPLES) {
-            dataset.X.length = MAX_TRAINING_EXAMPLES;
-            dataset.Y.length = MAX_TRAINING_EXAMPLES;
-            this.showToast('Large corpus: training on the first 15,000 token examples to protect browser memory.');
-          }
-
+          const profile = document.getElementById('training-profile').value || 'balanced';
+          const profileLimits = {
+            phone: { vocabLimit: 180, maxExamples: 300, hiddenCap: 16, epochCap: 12, profileLabel: 'Phone / low-memory CPU' },
+            balanced: { vocabLimit: 320, maxExamples: 700, hiddenCap: 32, epochCap: 25, profileLabel: 'Balanced CPU' },
+            large: { vocabLimit: 480, maxExamples: 1200, hiddenCap: 40, epochCap: 40, profileLabel: 'Large CPU' }
+          };
+          const limits = profileLimits[profile] || profileLimits.balanced;
+          const config = {
+            profile, profileLabel: limits.profileLabel,
+            epochs: Math.min(epochs, limits.epochCap), learningRate: Math.min(baseLr, profile === 'phone' ? 0.08 : 0.15),
+            contextSize: Math.min(6, Math.max(2, contextSize)),
+            hiddenDim: Math.min(hiddenDim, limits.hiddenCap),
+            embDim: 16, vocabLimit: limits.vocabLimit,
+            maxExamples: limits.maxExamples, augment
+          };
+          if (config.epochs < epochs) this.showToast(`Profile limited training to ${config.epochs} epochs for device safety.`);
+          if (config.hiddenDim < hiddenDim) this.showToast(`Hidden size limited to ${config.hiddenDim} for this hardware profile.`);
+          document.getElementById('chart-max-epoch').innerText = 'Epoch ' + config.epochs;
+          if (config.learningRate < baseLr) this.showToast(`Learning rate capped at ${config.learningRate} for stability on this hardware profile.`);
           const lossPoints = [];
-
-          let completedEpochs = 0;
-          for (let epoch = 1; epoch <= epochs; epoch++) {
-            if (this.stopRequested) break;
-            const lr = baseLr * (0.2 + 0.8 * 0.5 * (1 + Math.cos(Math.PI * epoch / epochs)));
-            let epochLoss = 0;
-            for (let i = 0; i < dataset.X.length; i++) {
-              if (this.stopRequested) break;
-              epochLoss += activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
-              // Frequent yielding makes the Stop button and browser controls responsive.
-              if (i > 0 && i % 32 === 0) await new Promise(resolve => setTimeout(resolve, 0));
-            }
-            if (this.stopRequested) break;
-            completedEpochs++;
-            const avgLoss = epochLoss / Math.max(1, dataset.X.length);
-            lossPoints.push(avgLoss);
-            activeObj.engine.lossHistory.push(avgLoss);
-            document.getElementById('train-progress-bar').style.width = ((epoch / epochs) * 100) + '%';
-            document.getElementById('current-loss-val').innerText = avgLoss.toFixed(4);
-            document.getElementById('train-status-text').innerText = `Training epoch ${epoch}/${epochs}`;
-            this.drawLossChart(lossPoints);
-            await new Promise(resolve => setTimeout(resolve, 0));
+          let usedWorker = false;
+          try {
+            usedWorker = await this.runWorkerTraining(activeObj, text, config, lossPoints);
+          } catch (err) {
+            console.error('Worker training failed:', err);
+            this.showToast('Worker training failed; switching to safe CPU fallback.', 'error');
           }
-          activeObj.engine.epochsTrained += completedEpochs;
-          activeObj.engine.isTrained = true;
+          if (!usedWorker) {
+            // Cooperative fallback for file://, restricted browsers, or unavailable workers.
+            activeObj.engine.contextSize = config.contextSize;
+            activeObj.engine.hiddenDim = config.hiddenDim;
+            activeObj.engine.embDim = config.embDim;
+            const cap = config.maxExamples;
+            const dataset = activeObj.engine.prepareDataset(text, augment, cap, config.vocabLimit);
+            if (dataset.X.length > cap) {
+              const stride = Math.ceil(dataset.X.length / cap);
+              dataset.X = dataset.X.filter((_, i) => i % stride === 0).slice(0, cap);
+              dataset.Y = dataset.Y.filter((_, i) => i % stride === 0).slice(0, cap);
+            }
+            let completed = 0;
+            for (let epoch = 1; epoch <= config.epochs; epoch++) {
+              if (this.stopRequested) break;
+              let loss = 0;
+              const lr = config.learningRate * (0.2 + 0.8 * 0.5 * (1 + Math.cos(Math.PI * epoch / config.epochs)));
+              for (let i = 0; i < dataset.X.length; i++) {
+                if (this.stopRequested) break;
+                loss += activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
+                if (i > 0 && i % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+              }
+              if (this.stopRequested) break;
+              const avg = loss / Math.max(1, dataset.X.length);
+              lossPoints.push(avg); activeObj.engine.lossHistory.push(avg); completed++;
+              document.getElementById('train-progress-bar').style.width = (epoch / config.epochs * 100) + '%';
+              document.getElementById('current-loss-val').innerText = avg.toFixed(4);
+              document.getElementById('train-status-text').innerText = `${config.profileLabel} · epoch ${epoch}/${config.epochs}`;
+              this.drawLossChart(lossPoints);
+              await new Promise(resolve => setTimeout(resolve, 0));
+            }
+            activeObj.engine.epochsTrained += completed;
+            activeObj.engine.isTrained = true;
+            activeObj.engine.rawCorpus = text;
+          }
         } else {
-          activeObj.engine.train(text.slice(0, 150000));
-          document.getElementById('train-progress-bar').style.width = "100%";
-          document.getElementById('current-loss-val').innerText = "0.000 (Indexed)";
+          const profile = document.getElementById('training-profile').value || 'balanced';
+          const indexLimit = profile === 'phone' ? 25000 : profile === 'large' ? 100000 : 50000;
+          if (activeObj.engine.trainAsync) await activeObj.engine.trainAsync(text, indexLimit, () => this.stopRequested);
+          else activeObj.engine.train(text.slice(0, indexLimit));
+          document.getElementById('train-progress-bar').style.width = this.stopRequested ? '0%' : '100%';
+          document.getElementById('current-loss-val').innerText = 'Indexed';
+          document.getElementById('validation-loss-val').innerText = 'N/A';
         }
 
         this.isTraining = false;
@@ -1991,7 +2238,7 @@
 
         this.saveModelsToStorage();
         this.updateStatsDisplay();
-        this.showToast(this.stopRequested ? 'Training stopped; progress saved.' : "Model '" + activeObj.name + "' trained! Switch to Chat Studio to test.");
+        this.showToast(this.stopRequested ? 'Training stopped safely; the last completed epoch was saved.' : "Model '" + activeObj.name + "' trained on your device. Test it in Chat Studio.");
       }
 
       drawLossChart(lossPoints) {
@@ -2025,6 +2272,7 @@
 
       // MODEL MODAL
       openModelModal() {
+        if (this.isRestoring) { this.showToast('Loading saved models… please wait.'); return; }
         document.getElementById('modal-model-name').value = '';
         document.getElementById('model-modal').classList.remove('hidden');
       }
@@ -2120,15 +2368,15 @@
       exportActiveModelJSON() {
         const activeObj = this.getActiveModelObj();
         const payload = {
-          name: activeObj.name,
-          type: activeObj.type,
-          data: activeObj.engine.toJSON()
+          formatVersion: 2, appVersion: '4.0', architecture: activeObj.type === 'neural' ? 'tiny-mlp-next-token' : 'tfidf-ngram-retrieval',
+          exportedAt: new Date().toISOString(), trainedOnDevice: true,
+          name: activeObj.name, type: activeObj.type, data: activeObj.engine.toJSON()
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'model-' + activeObj.name.toLowerCase().replace(/\s+/g, '-') + '.json';
+        a.download = 'model-' + activeObj.name.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') + '.json';
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
@@ -2139,7 +2387,7 @@
           type: m.type,
           data: m.engine.toJSON()
         }));
-        const blob = new Blob([JSON.stringify({ isBundle: true, models: bundle }, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify({ isBundle: true, formatVersion: 2, appVersion: '4.0', exportedAt: new Date().toISOString(), trainedOnDevice: true, models: bundle }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -2177,42 +2425,52 @@
         reader.readAsText(file);
       }
 
-      // LOCAL STORAGE PERSISTENCE
-      saveModelsToStorage() {
-        try {
-          const serializable = this.models.map(m => ({
-            id: m.id,
-            name: m.name,
-            type: m.type,
-            createdAt: m.createdAt,
-            engineData: m.engine.toJSON()
-          }));
-          localStorage.setItem('teachable_ai_models_v3', JSON.stringify(serializable));
-        } catch (e) {
-          console.warn('Could not save model to localStorage:', e);
-          this.showToast('Model is too large for browser storage. Export a JSON backup.', 'error');
-        }
+      // IndexedDB stores larger model checkpoints; localStorage remains a quick legacy fallback.
+      openStorageDB() {
+        return new Promise((resolve, reject) => {
+          if (!('indexedDB' in window)) { reject(new Error('IndexedDB unavailable')); return; }
+          const request = indexedDB.open('teachable-ai-studio-v4', 1);
+          request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('state')) request.result.createObjectStore('state'); };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error || new Error('Could not open model database'));
+        });
       }
 
-      loadModelsFromStorage() {
-        try {
-          const raw = localStorage.getItem('teachable_ai_models_v3');
-          if (!raw) return;
-          const parsed = JSON.parse(raw);
-          this.models = parsed.map(m => {
+      saveModelsToStorage() {
+        const serializable = this.models.map(m => ({ id:m.id, name:m.name, type:m.type, createdAt:m.createdAt, engineData:m.engine.toJSON() }));
+        const payload = JSON.stringify(serializable);
+        let localSaved = false;
+        try { localStorage.setItem('teachable_ai_models_v3', payload); localSaved = true; }
+        catch (e) { console.warn('localStorage quota reached; saving to IndexedDB instead.', e); }
+        this.openStorageDB().then(db => new Promise((resolve,reject) => {
+          const tx=db.transaction('state','readwrite');
+          tx.objectStore('state').put({ savedAt:Date.now(), models:serializable },'models');
+          tx.oncomplete=()=>{db.close();resolve();}; tx.onerror=()=>{db.close();reject(tx.error||new Error('IndexedDB write failed'));};
+        })).catch(err => {
+          console.warn('IndexedDB save failed:',err);
+          if (!localSaved) this.showToast('Browser storage is full or unavailable. Export a JSON backup to keep this model.', 'error');
+        });
+        if (!localSaved) this.showToast('Saved using IndexedDB when available. Export a backup for safety.', 'warning');
+      }
+
+      async loadModelsFromStorage() {
+        const restore = data => {
+          if (!Array.isArray(data)) return false;
+          this.models = data.map(m => {
             const engine = m.type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();
             if (m.engineData) engine.fromJSON(m.engineData);
-            return {
-              id: m.id,
-              name: m.name,
-              type: m.type,
-              createdAt: m.createdAt,
-              engine
-            };
+            return { id:m.id || ('model-' + Date.now()), name:m.name || 'Imported Model', type:m.type || 'neural', createdAt:m.createdAt || new Date().toLocaleDateString(), engine };
           });
-        } catch (e) {
-          console.warn("Could not parse saved models");
-        }
+          return true;
+        };
+        try { const raw=localStorage.getItem('teachable_ai_models_v3'); if(raw) restore(JSON.parse(raw)); }
+        catch(e) { console.warn('Could not parse localStorage models:',e); }
+        try {
+          const db=await this.openStorageDB();
+          const record=await new Promise((resolve,reject)=>{const req=db.transaction('state','readonly').objectStore('state').get('models');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
+          db.close();
+          if(record && Array.isArray(record.models)) restore(record.models);
+        } catch(e) { /* IndexedDB may be unavailable in private/file contexts. */ }
       }
 
       escapeHTML(str) {
@@ -2229,6 +2487,9 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       window.app = new AIApp();
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('App shell caching unavailable:', err));
+      }
     });
   </script>
 </body>

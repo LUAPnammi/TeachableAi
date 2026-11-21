@@ -6,7 +6,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>Teachable AI Studio v6.0 - Adaptive Knowledge & Attention Lab</title>
+  <title>Teachable AI - 0.1 Beta | Build Your Own Model</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -70,9 +70,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">v6.0 Pro</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">0.1 BETA</span>
         </div>
-        <p class="text-xs text-slate-400 hidden sm:block">Browser-based · CPU-first · local model training</p>
+        <p class="text-xs text-slate-400 hidden sm:block">Build · Teach · Train · Test your own AI</p>
       </div>
     </div>
 
@@ -91,7 +91,7 @@
   </header>
 
   <!-- Main Content Layout -->
-  <main class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
+  <main class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
 
     <!-- Navigation Bar / Sidebar -->
     <div class="w-full md:w-64 flex md:flex-col gap-2 shrink-0 order-2 md:order-1">
@@ -161,10 +161,10 @@
     </div>
 
     <!-- Active View Area -->
-    <div class="flex-1 flex flex-col min-h-0 order-1 md:order-2 h-[calc(100vh-140px)] md:h-auto">
+    <div class="flex-1 flex flex-col min-h-0 order-1 md:order-2 h-[calc(100dvh-140px)] md:h-auto">
 
       <!-- ================= TAB 1: CHAT STUDIO ================= -->
-      <section id="chat-tab" class="tab-content flex-1 flex flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <section id="chat-tab" class="tab-content flex-1 min-h-0 flex flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
         <!-- Chat Controls Header -->
         <div class="px-4 py-3 border-b border-slate-800/80 bg-slate-900/50 flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
@@ -176,6 +176,8 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
+            <select id="chat-session-select" title="Conversation history" class="max-w-[125px] sm:max-w-[170px] bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-[11px] text-slate-300"><option value="">Current chat</option></select>
+            <button id="new-chat-btn" class="text-slate-300 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-slate-800/70 hover:bg-slate-800"><i class="fa-solid fa-plus mr-1"></i>New</button>
             <!-- Quick Test Chips -->
             <div class="hidden lg:flex items-center gap-1 mr-2">
               <button class="quick-prompt-chip px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">hi</button>
@@ -203,14 +205,14 @@
         </div>
 
         <!-- Chat History Stream -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 font-sans text-sm">
+        <div id="chat-messages" class="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-4 font-sans text-sm" style="overflow-anchor:auto">
           <div class="flex gap-3 max-w-2xl">
             <div class="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 text-brand-400 flex items-center justify-center shrink-0 text-xs font-mono font-bold">
               AI
             </div>
             <div class="flex flex-col gap-1">
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
-                Welcome to <b>Teachable AI Studio v5.0</b>! I have been pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away.
+                Welcome to <b>Teachable AI 0.1 Beta</b>! I have been pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away.
                 <br><br>
                 <span class="text-xs text-slate-400">
                   <i class="fa-solid fa-sparkles text-brand-400 mr-1"></i>
@@ -336,7 +338,7 @@
                 <button id="clear-corpus-btn" class="text-rose-400 hover:text-rose-300 font-sans">Clear</button>
                 <label class="cursor-pointer text-brand-400 hover:text-brand-300 flex items-center gap-1 font-sans">
                   <i class="fa-solid fa-file-arrow-up"></i> Upload .txt
-                  <input type="file" id="file-upload" accept=".txt,.md" class="hidden">
+                  <input type="file" id="file-upload" accept=".txt,.md,.csv,.json,.jsonl,.tsv" class="hidden">
                 </label>
               </div>
             </div>
@@ -447,7 +449,7 @@
               <i class="fa-solid fa-layer-group text-pink-400"></i>
               Training Corpus & Paragraph Library
             </h2>
-            <p class="text-xs text-slate-400">1-click copy, append, or auto-train curated Q&A datasets and rich knowledge paragraphs</p>
+            <p class="text-xs text-slate-400">Build your own model: import datasets, teach missing topics, train, and compare results</p>
           </div>
 
           <div class="flex items-center gap-2">
@@ -461,7 +463,12 @@
           </div>
         </div>
 
-        <div id="library-grid" class="flex-1 overflow-y-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+        <div class="mx-4 mt-4 p-4 rounded-xl border border-cyan-500/20 bg-slate-900/80 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="text-sm font-bold text-white"><i class="fa-solid fa-database text-cyan-300 mr-2"></i>Corpus Vault · External datasets</h3><p class="text-[11px] text-slate-400">Import large text datasets into browser storage. Imported content is stored outside this HTML file, so adding data does not increase the application script size.</p></div><label class="px-3 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs cursor-pointer"><i class="fa-solid fa-file-arrow-up mr-1"></i>Import files<input id="corpus-vault-upload" type="file" accept=".txt,.md,.csv,.json,.jsonl,.tsv" multiple class="hidden"></label></div>
+          <div class="flex flex-wrap gap-2"><button id="load-vault-corpus-btn" class="px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs">Append selected datasets to Train Studio</button><button id="refresh-vault-btn" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs">Refresh</button><span id="vault-summary" class="text-[11px] text-slate-500 self-center">No external datasets loaded.</span></div>
+          <div id="corpus-vault-list" class="grid grid-cols-1 md:grid-cols-2 gap-2"><p class="text-xs text-slate-500">Your imported datasets will appear here.</p></div>
+        </div>
+        <div id="library-grid" class="flex-1 min-h-0 overflow-y-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
       </section>
 
       <!-- ================= TAB 4: MODELS HUB ================= -->
@@ -482,6 +489,16 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div class="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2">
+            <div class="flex items-center justify-between gap-2"><h3 class="text-xs font-bold text-white"><i class="fa-solid fa-scale-balanced text-amber-300 mr-2"></i>1M-parameter reference benchmark</h3><span class="text-[10px] text-amber-300 border border-amber-500/30 rounded px-2 py-0.5">Weights not bundled</span></div>
+            <p class="text-[11px] text-slate-400">The beta includes repeatable side-by-side evaluation for your saved models. A genuinely pretrained 1-million-parameter reference requires a compatible, licensed pretrained weight file; this app does not pretend that random weights or a newly trained starter model are pretrained. Import a compatible model brain below when one is available, then use Evaluation → Compare all models.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-brand-500/20 space-y-3">
+            <div class="flex items-center justify-between"><h3 class="text-xs font-bold text-white"><i class="fa-solid fa-trophy text-amber-300 mr-2"></i>Research progression</h3><span id="progress-level" class="text-xs font-mono text-brand-300">Level 1 · Apprentice</span></div>
+            <div class="h-2 rounded-full bg-slate-800 overflow-hidden"><div id="progress-bar" class="h-full bg-gradient-to-r from-brand-500 to-accent-500" style="width:0%"></div></div>
+            <p id="progress-xp" class="text-[10px] text-slate-500">0 research points</p>
+            <div id="progress-achievements" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+          </div>
           <div class="space-y-2">
             <span class="text-xs font-semibold text-slate-300 block">Saved AI Models</span>
             <div id="models-card-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
@@ -547,6 +564,12 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
             <button id="save-preferences-btn" class="px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs text-white">Save preferences</button>
             <p class="text-[10px] text-slate-500">Preferences steer response formatting; they do not add factual knowledge or change model weights.</p>
           </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-cyan-500/20 space-y-3">
+            <h3 class="text-xs font-bold text-white"><i class="fa-solid fa-spell-check text-cyan-300 mr-2"></i>Vocabulary Workshop</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><input id="vocab-term" class="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white" placeholder="New word / term"><textarea id="vocab-definition" rows="2" class="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white" placeholder="Definition and example / context"></textarea></div>
+            <button id="add-vocab-btn" class="px-3 py-2 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-xs text-white">Teach this vocabulary</button>
+            <p class="text-[10px] text-slate-500">Adds the term and definition to the model's searchable knowledge. Retrain to rebuild its tokenizer and neural weights with the new vocabulary.</p>
+          </div>
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
             <h3 class="text-xs font-bold text-white"><i class="fa-solid fa-book text-amber-300 mr-2"></i>Individual knowledge facts & version history</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><input id="fact-title" class="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white" placeholder="Fact title / subject"><textarea id="fact-body" rows="2" class="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white sm:col-span-2" placeholder="Write one fact or compact knowledge item…"></textarea></div>
@@ -564,9 +587,9 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         <div class="p-4 border-b border-slate-800 bg-slate-900/50">
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-400"></i>
-            How To Train & Tune Your Browser AI (v6.0)
+            How To Build Your Own AI (0.1 Beta)
           </h2>
-          <p class="text-xs text-slate-400">Persistent learning, retrieval memory, context limits, and honest benchmarking</p>
+          <p class="text-xs text-slate-400">A game-like model lab for building, teaching, training, and testing small local models</p>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs leading-relaxed text-slate-300">
@@ -1633,6 +1656,9 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         this.preferences = this.loadPreferences();
         this.editingFactId = null;
         this.previewCache = null;
+        this.chatSessions = this.loadChatSessions();
+        this.activeChatId = null;
+        this.vaultDocs = [];
 
         this.initUI();
         this.renderCorpusLibrary('all');
@@ -1663,6 +1689,8 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         this.refreshModelSelect();
         this.updateStatsDisplay();
         this.refreshMemoryInspector();
+        this.initChatSessions();
+        this.refreshCorpusVault().catch(err=>console.warn("Corpus Vault unavailable",err));
       }
 
       mergeCorpus(existing, incoming, replaceMatchingQA = true) {
@@ -1814,10 +1842,16 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
         document.getElementById('clear-chat-btn').addEventListener('click', () => {
           document.getElementById('chat-messages').innerHTML = '';
+          const session=this.getActiveChatSession(); if(session){session.messages=[];this.persistChatSessions();}
           this.showToast("Chat cleared.");
         });
 
         document.getElementById('export-chat-btn').addEventListener('click', () => this.exportChatTranscript());
+        document.getElementById('new-chat-btn').addEventListener('click', () => this.newChatSession());
+        document.getElementById('chat-session-select').addEventListener('change', e => this.switchChatSession(e.target.value));
+        document.getElementById('corpus-vault-upload').addEventListener('change', e => this.importCorpusFiles(e));
+        document.getElementById('refresh-vault-btn').addEventListener('click', () => this.refreshCorpusVault());
+        document.getElementById('load-vault-corpus-btn').addEventListener('click', () => this.appendSelectedVaultDocs());
 
         // Library & Training Studio shortcuts
         document.getElementById('open-library-shortcut-btn').addEventListener('click', () => this.switchTab('library-tab'));
@@ -1865,6 +1899,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         document.getElementById('calculate-prompt-btn').addEventListener('click', () => this.calculatePrompt());
         document.getElementById('save-preferences-btn').addEventListener('click', () => this.savePreferencesFromUI());
         document.getElementById('save-fact-btn').addEventListener('click', () => this.saveKnowledgeFact());
+        document.getElementById('add-vocab-btn').addEventListener('click', () => this.addVocabularyEntry());
         document.getElementById('cancel-fact-edit-btn').addEventListener('click', () => this.resetFactEditor());
         this.renderPreferences(); this.renderKnowledgeFacts();
       }
@@ -1886,12 +1921,39 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         if(p.tone==='friendly' && out && !/[.!?]$/.test(out)) out+='!';
         return out;
       }
+      analyzeKnowledgeCoverage(engine, prompt) {
+        const memory=engine.memory, terms=memory?.extractTerms(prompt)||[];
+        const known=terms.filter(t=>memory?.idf?.has(t));
+        const candidates=memory?.queryCandidates(prompt,5)||[];
+        const best=candidates[0]||null;
+        const coverage=terms.length?known.length/terms.length:0;
+        return {terms,known,coverage,best,candidates,unknownTerms:terms.filter(t=>!memory?.idf?.has(t))};
+      }
       generatePreferred(engine, prompt, maxTokens, temperature, repetitionPenalty, topK) {
-        const p=this.preferences||{}, exact=engine.memory?.queryBestMatch(prompt);
+        const p=this.preferences||{}, analysis=this.analyzeKnowledgeCoverage(engine,prompt), exact=engine.memory?.queryBestMatch(prompt);
         if(exact) return this.applyPreferences(exact.text);
-        const conditioned=p.instruction ? `${prompt}\nPreference: ${p.instruction}` : prompt;
+        // Abstain when neither vocabulary coverage nor retrieval evidence supports an answer.
+        if(!analysis.best || (analysis.best.score < 0.16 && analysis.coverage < 0.55) || (analysis.coverage < 0.22 && analysis.best.score < 0.34)) {
+          this.lastUnknownAnalysis=analysis;
+          return `I don't know that yet. My learned vocabulary and knowledge do not contain enough relevant information to answer confidently.\n\nTeach me this topic and I'll add it to my knowledge.[[[UNKNOWN_RESPONSE]]]`;
+        }
+        this.lastUnknownAnalysis=null;
+        const conditioned=[prompt,p.instruction?`Preference: ${p.instruction}`:'',`Use only learned evidence when possible. If evidence is insufficient, say you do not know.`].filter(Boolean).join('\n');
         return this.applyPreferences(engine.generate(conditioned,maxTokens,temperature,repetitionPenalty,topK));
       }
+      addVocabularyEntry() {
+        const term=document.getElementById('vocab-term').value.trim(), definition=document.getElementById('vocab-definition').value.trim();
+        if(!term||!definition){this.showToast('Enter a term and its definition.','error');return;}
+        const facts=this.activeFacts(), key=term.toLowerCase();
+        const existing=facts.find(f=>f.title.toLowerCase()===('Vocabulary: '+key));
+        const now=new Date().toISOString();
+        if(existing){existing.versions=existing.versions||[];existing.versions.push({title:existing.title,body:existing.body,at:now});existing.body=`${term}: ${definition}`;existing.updatedAt=now;}
+        else facts.push({id:'vocab-'+Date.now()+'-'+Math.floor(Math.random()*9999),title:'Vocabulary: '+term,body:`${term}: ${definition}`,createdAt:now,updatedAt:now,versions:[]});
+        this.syncFactsToCorpus();this.saveModelsToStorage();this.renderKnowledgeFacts();this.refreshMemoryInspector();
+        document.getElementById('vocab-term').value='';document.getElementById('vocab-definition').value='';
+        this.showToast(`Added “${term}” to learned knowledge. Retrain to update token weights.`);
+      }
+
       activeFacts() { const m=this.getActiveModelObj(); if(!m) return []; if(!Array.isArray(m.knowledgeItems))m.knowledgeItems=[]; return m.knowledgeItems; }
       resetFactEditor() { this.editingFactId=null; document.getElementById('fact-title').value=''; document.getElementById('fact-body').value=''; document.getElementById('save-fact-btn').textContent='Add fact'; }
       saveKnowledgeFact() {
@@ -2153,9 +2215,10 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           const response = (this.previewCache && this.previewCache.prompt === prompt) ? this.previewCache.response : this.generatePreferred(model,prompt,maxTokens,temp,repPenalty,topK);
           this.previewCache = null;
           typingBubble.remove();
-          this.appendChatMessage('ai', response, prompt);
+          const isUnknown=response.includes('[[[UNKNOWN_RESPONSE]]]');
+          this.appendChatMessage('ai', response.replace('[[[UNKNOWN_RESPONSE]]]',''), prompt, isUnknown);
 
-          if (document.getElementById('live-learn-toggle').checked && prompt.split(/\s+/).length >= 3) {
+          if (!isUnknown && document.getElementById('live-learn-toggle').checked && prompt.split(/\s+/).length >= 3) {
             const learnedTurn = 'user: ' + prompt + '\nai: ' + response;
             const updatedCorpus = this.mergeCorpus(model.rawCorpus, learnedTurn, false);
             model.rawCorpus = updatedCorpus;
@@ -2168,7 +2231,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         }, 160);
       }
 
-      appendChatMessage(role, text, originalPrompt = '') {
+      appendChatMessage(role, text, originalPrompt = '', isUnknown = false) {
         const container = document.getElementById('chat-messages');
         const wrapper = document.createElement('div');
         wrapper.className = 'flex gap-3 max-w-2xl ' + (role === 'user' ? 'ml-auto flex-row-reverse' : '');
@@ -2193,7 +2256,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
               </div>
               <div class="flex items-center gap-3 px-1 text-[11px] text-slate-400">
                 <button class="teach-btn hover:text-amber-300 transition flex items-center gap-1" data-prompt="${this.escapeHTML(originalPrompt)}" data-response="${this.escapeHTML(text)}">
-                  <i class="fa-solid fa-graduation-cap text-amber-400"></i> Correct / Teach
+                  <i class="fa-solid fa-graduation-cap text-amber-400"></i> ${isUnknown?'Teach me this topic':'Correct / Teach'}
                 </button>
               </div>
             </div>
@@ -2206,6 +2269,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         }
 
         container.appendChild(wrapper);
+        const session=this.getActiveChatSession(); if(session && !this.isRenderingChatHistory){session.messages.push({role,text, prompt:originalPrompt, unknown:isUnknown});if(role==='user' && session.title==='New conversation')session.title=text.slice(0,32);this.renderChatSessionOptions();this.persistChatSessions();}
         container.scrollTop = container.scrollHeight;
       }
 
@@ -2226,6 +2290,61 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         container.appendChild(wrapper);
         container.scrollTop = container.scrollHeight;
         return wrapper;
+      }
+
+      loadChatSessions() { try { return JSON.parse(localStorage.getItem('teachable_ai_chat_sessions_beta')||'[]'); } catch(e) { return []; } }
+      persistChatSessions() { try { localStorage.setItem('teachable_ai_chat_sessions_beta',JSON.stringify(this.chatSessions.slice(0,40))); } catch(e) { this.showToast('Chat history storage is full. Export conversations to keep them.','error'); } }
+      getActiveChatSession() { return this.chatSessions.find(s=>s.id===this.activeChatId)||null; }
+      initChatSessions() {
+        const select=document.getElementById('chat-session-select');
+        if(!this.chatSessions.length){this.newChatSession(false);return;}
+        this.activeChatId=this.chatSessions[0].id; this.renderChatSessionOptions(); this.renderChatSession(this.getActiveChatSession());
+      }
+      renderChatSessionOptions() {
+        const select=document.getElementById('chat-session-select'); if(!select)return;
+        select.innerHTML=this.chatSessions.map(s=>`<option value="${this.escapeHTML(s.id)}">${this.escapeHTML(s.title||'Conversation')}</option>`).join('');
+        select.value=this.activeChatId||'';
+      }
+      newChatSession(showToast=true) {
+        const id='chat-'+Date.now()+'-'+Math.floor(Math.random()*9999);
+        this.chatSessions.unshift({id,title:'New conversation',createdAt:Date.now(),messages:[]}); this.activeChatId=id;
+        document.getElementById('chat-messages').innerHTML=''; this.renderChatSessionOptions(); this.persistChatSessions();
+        if(showToast)this.showToast('New conversation started.');
+      }
+      switchChatSession(id) { const s=this.chatSessions.find(x=>x.id===id); if(!s)return; this.activeChatId=id; this.renderChatSession(s); }
+      renderChatSession(session) {
+        const box=document.getElementById('chat-messages'); box.innerHTML=''; this.isRenderingChatHistory=true;
+        (session?.messages||[]).forEach(m=>this.appendChatMessage(m.role,m.text,m.prompt||'',!!m.unknown));
+        this.isRenderingChatHistory=false;
+        // Rendering must not duplicate stored turns.
+        if(session) session.messages=(session.messages||[]).slice(-500);
+        box.scrollTop=box.scrollHeight;
+      }
+      async importCorpusFiles(event) {
+        const files=Array.from(event.target.files||[]); if(!files.length)return;
+        for(const file of files){
+          try { const text=await file.text(); if(!text.trim())continue;
+            await this.putCorpusDoc({id:'doc-'+Date.now()+'-'+Math.floor(Math.random()*99999),name:file.name,type:file.type||'text/plain',size:file.size,updatedAt:Date.now(),text});
+          } catch(err){this.showToast('Could not import '+file.name+': '+err.message,'error');}
+        }
+        event.target.value=''; await this.refreshCorpusVault(); this.showToast(`${files.length} dataset file(s) stored outside the HTML application.`);
+      }
+      async putCorpusDoc(doc) { const db=await this.openStorageDB(); return new Promise((resolve,reject)=>{const tx=db.transaction('corpusDocs','readwrite');tx.objectStore('corpusDocs').put(doc);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};}); }
+      async getCorpusDocs() { const db=await this.openStorageDB(); return new Promise((resolve,reject)=>{const tx=db.transaction('corpusDocs','readonly'),req=tx.objectStore('corpusDocs').getAll();req.onsuccess=()=>{db.close();resolve(req.result||[]);};req.onerror=()=>{db.close();reject(req.error);};}); }
+      async deleteCorpusDoc(id) { const db=await this.openStorageDB(); return new Promise((resolve,reject)=>{const tx=db.transaction('corpusDocs','readwrite');tx.objectStore('corpusDocs').delete(id);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};}); }
+      async refreshCorpusVault() {
+        const docs=await this.getCorpusDocs(); this.vaultDocs=docs;
+        const list=document.getElementById('corpus-vault-list'); if(!list)return;
+        document.getElementById('vault-summary').textContent=`${docs.length} files · ${docs.reduce((n,d)=>n+(d.size||0),0).toLocaleString()} bytes stored in IndexedDB`;
+        list.innerHTML=docs.length?docs.map(d=>`<label class="flex items-start gap-2 p-2 rounded-lg bg-slate-950 border border-slate-800"><input type="checkbox" class="vault-doc-check mt-1" value="${this.escapeHTML(d.id)}" checked><span class="min-w-0 flex-1"><span class="block text-xs text-slate-200 truncate">${this.escapeHTML(d.name)}</span><span class="block text-[10px] text-slate-500">${(d.size||0).toLocaleString()} bytes · ${new Date(d.updatedAt).toLocaleDateString()}</span></span><button type="button" data-vault-delete="${this.escapeHTML(d.id)}" class="text-rose-400 text-xs px-1" title="Delete dataset"><i class="fa-solid fa-trash"></i></button></label>`).join(''):'<p class="text-xs text-slate-500">No external datasets yet. Import .txt, .md, .csv, .json, .jsonl, or .tsv files.</p>';
+        list.querySelectorAll('[data-vault-delete]').forEach(b=>b.addEventListener('click',async e=>{e.preventDefault();await this.deleteCorpusDoc(b.dataset.vaultDelete);await this.refreshCorpusVault();}));
+      }
+      appendSelectedVaultDocs() {
+        const ids=Array.from(document.querySelectorAll('.vault-doc-check:checked')).map(x=>x.value), docs=this.vaultDocs.filter(d=>ids.includes(d.id));
+        if(!docs.length){this.showToast('Select at least one dataset.','error');return;}
+        const text=docs.map(d=>`\n\n# Imported dataset: ${d.name}\n${d.text}`).join('');
+        const area=document.getElementById('training-text'); area.value=this.mergeCorpus(area.value,text,false); this.updateCorpusStats(); this.switchTab('train-tab');
+        this.showToast(`${docs.length} dataset(s) appended. Train to index and learn from them.`);
       }
 
       exportChatTranscript() {
@@ -2587,6 +2706,26 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         this.showToast('Active model: ' + active.name);
       }
 
+      renderProgression() {
+        const m=this.getActiveModelObj(); if(!m)return; const e=m.engine;
+        const vocab=e.tokenizer?.size()||0, qa=e.memory?.qaPairs?.length||0, chars=(e.rawCorpus||'').length, epochs=e.epochsTrained||0;
+        const tasks=[
+          {name:'First model created',done:true,detail:'Your AI exists.'},
+          {name:'First training run',done:!!e.isTrained,detail:'Train the model at least once.'},
+          {name:'Vocabulary builder',done:vocab>=100,detail:`${vocab}/100 tokens`},
+          {name:'Knowledge collector',done:qa>=10,detail:`${qa}/10 Q&A pairs`},
+          {name:'Corpus explorer',done:chars>=10000,detail:`${chars.toLocaleString()}/10,000 characters`},
+          {name:'Training veteran',done:epochs>=10,detail:`${epochs}/10 epochs`}
+        ];
+        const xp=tasks.filter(t=>t.done).length*100, level=Math.floor(xp/300)+1, pct=(xp%300)/3;
+        const names=['Apprentice','Tinkerer','Trainer','Researcher','Architect','AI Engineer'];
+        const lvlName=names[Math.min(names.length-1,level-1)];
+        const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+        set('progress-level',`Level ${level} · ${lvlName}`);set('progress-xp',`${xp} research points · ${tasks.filter(t=>t.done).length}/${tasks.length} milestones complete`);
+        const bar=document.getElementById('progress-bar');if(bar)bar.style.width=`${pct}%`;
+        const box=document.getElementById('progress-achievements');if(box)box.innerHTML=tasks.map(t=>`<div class="flex items-center gap-2 p-2 rounded-lg ${t.done?'bg-emerald-500/10 border border-emerald-500/20':'bg-slate-950 border border-slate-800'}"><i class="fa-solid ${t.done?'fa-circle-check text-emerald-400':'fa-lock text-slate-600'}"></i><span class="min-w-0"><b class="block text-[10px] ${t.done?'text-emerald-200':'text-slate-300'}">${t.name}</b><small class="text-[9px] text-slate-500">${t.detail}</small></span></div>`).join('');
+      }
+
       updateStatsDisplay() {
         const activeObj = this.getActiveModelObj();
         const model = activeObj.engine;
@@ -2607,6 +2746,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         if(contextSlider && model.contextSize){contextSlider.value=String(model.contextSize);if(contextLabel)contextLabel.textContent=String(model.contextSize);}
         const sideContext=document.getElementById('side-context'); if(sideContext) sideContext.innerText=(model.contextSize || 'N/A') + (model.contextSize ? ' tokens' : '');
         this.renderModelsHubCards();
+        this.renderProgression();
         this.refreshMemoryInspector();
       }
 
@@ -2706,8 +2846,8 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       openStorageDB() {
         return new Promise((resolve, reject) => {
           if (!('indexedDB' in window)) { reject(new Error('IndexedDB unavailable')); return; }
-          const request = indexedDB.open('teachable-ai-studio-v6', 1);
-          request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('state')) request.result.createObjectStore('state'); };
+          const request = indexedDB.open('teachable-ai-studio-v6', 2);
+          request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('state')) request.result.createObjectStore('state'); if (!request.result.objectStoreNames.contains('corpusDocs')) request.result.createObjectStore('corpusDocs',{keyPath:'id'}); };
           request.onsuccess = () => resolve(request.result);
           request.onerror = () => reject(request.error || new Error('Could not open model database'));
         });

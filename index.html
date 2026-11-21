@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Teachable AI Studio - Coded from Scratch Engine</title>
+  <title>Teachable AI Studio - Multi-Model Browser Engine</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* Custom scrollbar for dark aesthetic */
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -58,21 +58,11 @@
     }
 
     .glass-panel {
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .pulse-glow {
-      animation: pulse-glow-anim 2s infinite ease-in-out;
-    }
-
-    @keyframes pulse-glow-anim {
-      0%, 100% { box-shadow: 0 0 15px rgba(20, 184, 166, 0.2); }
-      50% { box-shadow: 0 0 25px rgba(20, 184, 166, 0.5); }
-    }
-
-    /* Range slider custom styling */
     input[type=range] {
       accent-color: #14b8a6;
     }
@@ -92,33 +82,25 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-mono">JS Native</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-mono">v2.0 Multi-Model</span>
         </div>
-        <p class="text-xs text-slate-400 hidden sm:block">Zero-dependency AI model trained directly in your browser</p>
+        <p class="text-xs text-slate-400 hidden sm:block">Train & manage custom AI models directly in your browser</p>
       </div>
     </div>
 
-    <!-- Global Stats & Mobile Switcher -->
+    <!-- Active Model Selector & Quick Stats -->
     <div class="flex items-center gap-3">
-      <div class="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800 text-xs font-mono">
-        <div>
-          <span class="text-slate-500">Engine:</span>
-          <span id="active-engine-badge" class="text-brand-400 font-semibold ml-1">Neural Net</span>
-        </div>
-        <div class="h-3 w-px bg-slate-800"></div>
-        <div>
-          <span class="text-slate-500">Vocab:</span>
-          <span id="global-vocab-count" class="text-white ml-1">0</span>
-        </div>
-        <div class="h-3 w-px bg-slate-800"></div>
-        <div>
-          <span class="text-slate-500">Params:</span>
-          <span id="global-param-count" class="text-accent-400 ml-1">0</span>
-        </div>
+      <!-- Active Model Dropdown Picker -->
+      <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs">
+        <i class="fa-solid fa-robot text-brand-400"></i>
+        <select id="active-model-select" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer max-w-[120px] sm:max-w-[180px] truncate">
+          <!-- Populated by JS -->
+        </select>
       </div>
 
-      <button id="quick-reset-btn" title="Reset Model" class="p-2 rounded-lg bg-slate-900 hover:bg-rose-950/40 border border-slate-800 hover:border-rose-800/50 text-slate-400 hover:text-rose-400 transition">
-        <i class="fa-solid fa-rotate-right text-sm"></i>
+      <button id="new-model-modal-btn" title="Create New AI Model" class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow-sm">
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span class="hidden sm:inline">New Model</span>
       </button>
     </div>
   </header>
@@ -126,7 +108,7 @@
   <!-- Main Content Layout -->
   <main class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
 
-    <!-- Navigation Tabs (Mobile bottom bar / Desktop sidebar style top buttons) -->
+    <!-- Navigation Bar / Sidebar -->
     <div class="w-full md:w-64 flex md:flex-col gap-2 shrink-0 order-2 md:order-1">
       <nav class="flex md:flex-col w-full glass-panel p-1.5 rounded-2xl border border-slate-800 gap-1">
         <button tab-target="chat-tab" class="tab-btn active flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-white bg-brand-600/30 border border-brand-500/40">
@@ -137,19 +119,27 @@
           <i class="fa-solid fa-graduation-cap text-accent-400 text-base"></i>
           <span>Train Studio</span>
         </button>
-        <button tab-target="brain-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent">
-          <i class="fa-solid fa-microchip text-emerald-400 text-base"></i>
-          <span>Brain & Export</span>
+        <button tab-target="models-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent">
+          <i class="fa-solid fa-cubes text-emerald-400 text-base"></i>
+          <span>Models Hub</span>
+        </button>
+        <button tab-target="guide-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent">
+          <i class="fa-solid fa-book-open text-amber-400 text-base"></i>
+          <span>How To Guide</span>
         </button>
       </nav>
 
-      <!-- Engine Status Summary Box (Desktop Sidebar) -->
+      <!-- Sidebar Model Summary Card -->
       <div class="hidden md:flex flex-col gap-3 p-4 glass-panel rounded-2xl border border-slate-800 text-xs">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <span class="font-semibold text-slate-300">Active Engine</span>
-          <span id="engine-status-type" class="px-2 py-0.5 rounded text-[10px] bg-brand-950 text-brand-300 border border-brand-800/60 font-mono">Neural MLP</span>
+          <span class="font-semibold text-slate-300">Active Spec</span>
+          <span id="side-engine-badge" class="px-2 py-0.5 rounded text-[10px] bg-brand-950 text-brand-300 border border-brand-800/60 font-mono">Neural MLP</span>
         </div>
         <div class="space-y-2 text-slate-400 font-mono">
+          <div class="flex justify-between">
+            <span>Model Name:</span>
+            <span id="side-model-name" class="text-white font-sans font-semibold truncate max-w-[100px]">Default AI</span>
+          </div>
           <div class="flex justify-between">
             <span>Vocab Size:</span>
             <span id="side-vocab" class="text-slate-200">0 tokens</span>
@@ -159,18 +149,14 @@
             <span id="side-params" class="text-slate-200">0</span>
           </div>
           <div class="flex justify-between">
-            <span>Train Epochs:</span>
+            <span>Epochs:</span>
             <span id="side-epochs" class="text-slate-200">0</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Loss History:</span>
-            <span id="side-loss" class="text-brand-400">N/A</span>
           </div>
         </div>
 
         <div class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-slate-500 leading-relaxed">
-          <i class="fa-solid fa-circle-info text-brand-400 mr-1"></i>
-          This AI runs completely in JavaScript. No data ever leaves your device.
+          <i class="fa-solid fa-shield-halved text-brand-400 mr-1"></i>
+          100% Private & Local. Runs directly on CPU/Browser GPU.
         </div>
       </div>
     </div>
@@ -187,19 +173,19 @@
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
-            <span class="text-xs font-semibold text-slate-300">Live Inference Chat</span>
+            <span id="chat-model-title" class="text-xs font-semibold text-slate-200">Chatting with: Default AI</span>
           </div>
 
           <div class="flex items-center gap-3">
             <!-- Live Learn Toggle -->
-            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800" title="Automatically absorbs your prompts into model vocabulary">
               <input type="checkbox" id="live-learn-toggle" class="sr-only peer" checked>
               <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-500 relative"></div>
-              <span>Live Learn Mode</span>
+              <span>Live Learn</span>
             </label>
 
             <!-- Clear Chat -->
-            <button id="clear-chat-btn" class="text-slate-400 hover:text-slate-200 text-xs px-2 py-1 rounded bg-slate-800/50 hover:bg-slate-800 transition">
+            <button id="clear-chat-btn" class="text-slate-400 hover:text-slate-200 text-xs px-2.5 py-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition">
               <i class="fa-solid fa-trash-can mr-1"></i> Clear
             </button>
           </div>
@@ -214,37 +200,49 @@
             </div>
             <div class="flex flex-col gap-1">
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
-                Hello! I am your locally-trained custom JavaScript AI model.
+                Hello! I am your custom JavaScript AI model.
                 <br><br>
                 <span class="text-xs text-slate-400">
-                  <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
-                  Currently my brain has basic preset patterns. Switch to the <b>Train Studio</b> tab to paste custom text or upload notes to teach me new knowledge!
+                  <i class="fa-solid fa-circle-info text-brand-400 mr-1"></i>
+                  <b>Anti-Loop & Repetition Penalties</b> are enabled below. Switch to <b>Train Studio</b> to feed me starter paragraphs or custom Q&A text!
                 </span>
               </div>
-              <span class="text-[10px] text-slate-500 px-1 font-mono">System Engine Ready</span>
             </div>
           </div>
         </div>
 
         <!-- Chat Controls Drawer & Input Bar -->
-        <div class="p-3 border-t border-slate-800/80 bg-slate-900/80 flex flex-col gap-2">
+        <div class="p-3 border-t border-slate-800/80 bg-slate-900/90 flex flex-col gap-2.5">
           <!-- Sliders Bar -->
-          <div class="flex flex-wrap items-center justify-between gap-4 px-2 text-xs text-slate-400 font-mono">
-            <div class="flex items-center gap-2 flex-1 min-w-[140px]">
-              <span>Temp:</span>
-              <input type="range" id="chat-temp" min="0.1" max="1.5" step="0.1" value="0.7" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-              <span id="temp-val" class="text-brand-400 w-8 text-right">0.7</span>
+          <div class="grid grid-cols-3 gap-3 px-1 text-[11px] text-slate-400 font-mono">
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between">
+                <span>Temp:</span>
+                <span id="temp-val" class="text-brand-400 font-bold">0.6</span>
+              </div>
+              <input type="range" id="chat-temp" min="0.1" max="1.5" step="0.05" value="0.6" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
             </div>
-            <div class="flex items-center gap-2 flex-1 min-w-[140px]">
-              <span>Max Tokens:</span>
-              <input type="range" id="chat-max-tokens" min="10" max="200" step="10" value="60" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-              <span id="max-tokens-val" class="text-accent-400 w-8 text-right">60</span>
+
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between">
+                <span title="Prevents repetitive word looping">Rep Penalty:</span>
+                <span id="rep-val" class="text-amber-400 font-bold">1.25</span>
+              </div>
+              <input type="range" id="chat-rep-penalty" min="1.0" max="2.0" step="0.05" value="1.25" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between">
+                <span>Max Tokens:</span>
+                <span id="max-tokens-val" class="text-accent-400 font-bold">40</span>
+              </div>
+              <input type="range" id="chat-max-tokens" min="10" max="150" step="5" value="40" class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
             </div>
           </div>
 
           <!-- Input Textarea + Buttons -->
           <div class="flex items-end gap-2 relative">
-            <textarea id="chat-input" rows="1" placeholder="Type a message or prompt..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
+            <textarea id="chat-input" rows="1" placeholder="Type a prompt or question..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
             <button id="send-msg-btn" class="h-[42px] px-4 rounded-xl bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-medium flex items-center justify-center gap-2 transition shadow-lg shadow-brand-600/20 shrink-0">
               <i class="fa-solid fa-paper-plane text-xs"></i>
               <span class="hidden sm:inline text-xs">Send</span>
@@ -261,90 +259,84 @@
               <i class="fa-solid fa-graduation-cap text-accent-400"></i>
               Interactive Model Training Studio
             </h2>
-            <p class="text-xs text-slate-400">Train your model on custom text corpora in real-time</p>
+            <p class="text-xs text-slate-400">Train active model on custom corpora or instant starter presets</p>
           </div>
 
-          <!-- Preset selector -->
-          <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            <span class="text-xs text-slate-400 hidden sm:inline">Presets:</span>
-            <button class="preset-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition border border-slate-700" data-preset="assistant">
-              🤖 Assistant
-            </button>
-            <button class="preset-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition border border-slate-700" data-preset="scifi">
-              🚀 Sci-Fi
-            </button>
-            <button class="preset-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition border border-slate-700" data-preset="coder">
-              💻 Coding
-            </button>
-            <button class="preset-btn px-2.5 py-1 rounded-lg bg-slate-800/60 hover:bg-rose-950/40 text-xs text-slate-400 hover:text-rose-300 transition border border-slate-800" data-preset="clear">
-              🧹 Clear
-            </button>
+          <!-- Ready-to-use Starter Presets Dropdown -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 hidden sm:inline">Load Preset:</span>
+            <select id="preset-select" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-brand-300 font-medium focus:outline-none">
+              <option value="">-- Choose Starter Text --</option>
+              <option value="assistant">🤖 Friendly Assistant Q&A</option>
+              <option value="science">🌌 Science & Space Tutor</option>
+              <option value="coder">💻 Coding & Tech Helper</option>
+              <option value="roleplay">🎭 Fantasy Roleplay</option>
+              <option value="clear">🧹 Clear Textarea</option>
+            </select>
           </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
           <!-- Engine Selection Cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Engine Option 1 -->
             <label class="engine-card cursor-pointer p-3.5 rounded-xl border border-brand-500/50 bg-brand-950/20 hover:bg-brand-950/30 transition flex gap-3 items-start relative">
               <input type="radio" name="engine-type" value="neural" checked class="mt-1 accent-brand-500">
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-xs text-brand-300">Neural Net (Tiny MLP)</span>
+                  <span class="font-semibold text-xs text-brand-300">Neural Network (Tiny MLP)</span>
                   <span class="text-[10px] px-1.5 py-0.2 rounded bg-brand-500/20 text-brand-300 font-mono">Backprop SGD</span>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-snug">
-                  Autoregressive Neural Network with trainable token embeddings, dense hidden layer, Softmax probabilities, and Backpropagation SGD.
+                  Learns continuous word embeddings and dense hidden layers. Watch real loss drop over training epochs.
                 </p>
               </div>
             </label>
 
-            <!-- Engine Option 2 -->
             <label class="engine-card cursor-pointer p-3.5 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900 transition flex gap-3 items-start relative">
               <input type="radio" name="engine-type" value="ngram" class="mt-1 accent-brand-500">
               <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-semibold text-xs text-slate-200">Hybrid N-Gram Context Engine</span>
+                  <span class="font-semibold text-xs text-slate-200">Hybrid Context N-Gram</span>
                   <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-mono">Instant</span>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-snug">
-                  Multi-order (1 to 4-gram) statistical probability matrix + Q&A context matcher. Trains instantaneously with zero lag on large text.
+                  Statistical N-Gram probability matrix with direct Q&A context matching. Zero lag on large text.
                 </p>
               </div>
             </label>
           </div>
 
-          <!-- Training Text Input -->
+          <!-- Training Text Area -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label for="training-text" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <i class="fa-solid fa-align-left text-brand-400"></i> Raw Training Text Corpus
+                <i class="fa-solid fa-align-left text-brand-400"></i> Training Text Corpus
               </label>
               <div class="flex items-center gap-3 text-xs text-slate-400 font-mono">
                 <span id="corpus-tokens">Tokens: ~0</span>
                 <label class="cursor-pointer text-brand-400 hover:text-brand-300 flex items-center gap-1 font-sans">
-                  <i class="fa-solid fa-file-arrow-up"></i> Upload .txt/.md
-                  <input type="file" id="file-upload" accept=".txt,.md,.json" class="hidden">
+                  <i class="fa-solid fa-file-arrow-up"></i> Upload .txt
+                  <input type="file" id="file-upload" accept=".txt,.md" class="hidden">
                 </label>
               </div>
             </div>
 
-            <textarea id="training-text" rows="8" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none transition leading-relaxed" placeholder="Paste your training text here..."></textarea>
+            <textarea id="training-text" rows="8" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none transition leading-relaxed" placeholder="Format your text using User: and AI: turns for optimal chat responses..."></textarea>
           </div>
 
-          <!-- Hyperparameters Grid -->
+          <!-- Hyperparameters -->
           <div class="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-3">
             <span class="text-xs font-semibold text-slate-300 block border-b border-slate-800 pb-2">
-              <i class="fa-solid fa-sliders text-accent-400 mr-1"></i> Hyperparameters & Settings
+              <i class="fa-solid fa-sliders text-accent-400 mr-1"></i> Hyperparameters
             </span>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <label class="text-slate-400 block mb-1">Epochs: <span id="val-epochs" class="text-white font-bold">50</span></label>
-                <input type="range" id="param-epochs" min="5" max="300" step="5" value="50" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
+                <label class="text-slate-400 block mb-1">Epochs: <span id="val-epochs" class="text-white font-bold">60</span></label>
+                <input type="range" id="param-epochs" min="10" max="300" step="10" value="60" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
               </div>
               <div>
-                <label class="text-slate-400 block mb-1">Learning Rate: <span id="val-lr" class="text-white font-bold">0.05</span></label>
-                <input type="range" id="param-lr" min="0.005" max="0.3" step="0.005" value="0.05" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
+                <label class="text-slate-400 block mb-1">Learning Rate: <span id="val-lr" class="text-white font-bold">0.08</span></label>
+                <input type="range" id="param-lr" min="0.01" max="0.3" step="0.01" value="0.08" class="w-full h-1 bg-slate-700 rounded appearance-none cursor-pointer">
               </div>
               <div>
                 <label class="text-slate-400 block mb-1">Context Window: <span id="val-context" class="text-white font-bold">2</span></label>
@@ -357,12 +349,12 @@
             </div>
           </div>
 
-          <!-- Training Action Bar & Analytics -->
+          <!-- Action & Metrics -->
           <div class="space-y-3">
             <div class="flex items-center gap-3">
-              <button id="start-train-btn" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-500 hover:to-accent-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-brand-500/20 active:scale-98">
+              <button id="start-train-btn" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-accent-600 hover:from-brand-500 hover:to-accent-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-brand-500/20">
                 <i class="fa-solid fa-play text-xs"></i>
-                <span>Train Model Now</span>
+                <span>Train Active Model Now</span>
               </button>
               <button id="stop-train-btn" disabled class="px-4 py-3 rounded-xl bg-slate-800 text-slate-500 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition disabled:opacity-50">
                 <i class="fa-solid fa-pause text-xs"></i>
@@ -370,7 +362,7 @@
               </button>
             </div>
 
-            <!-- Real-time Training Progress & Chart -->
+            <!-- Training Progress & Chart -->
             <div id="training-metrics-panel" class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
               <div class="flex items-center justify-between text-xs font-mono">
                 <div class="flex items-center gap-2">
@@ -387,20 +379,18 @@
                 <div id="train-progress-bar" class="h-full bg-gradient-to-r from-brand-500 to-accent-500 w-0 transition-all duration-100"></div>
               </div>
 
-              <!-- Live SVG Loss Chart -->
+              <!-- Live Loss Chart -->
               <div class="space-y-1">
                 <div class="flex justify-between text-[10px] text-slate-500 font-mono">
                   <span>Epoch 1</span>
-                  <span>Loss Convergence Curve</span>
-                  <span id="chart-max-epoch">Epoch 50</span>
+                  <span>Training Loss Curve</span>
+                  <span id="chart-max-epoch">Epoch 60</span>
                 </div>
-                <div class="w-full h-32 bg-slate-900/80 rounded-lg border border-slate-800/80 p-2 relative">
+                <div class="w-full h-28 bg-slate-900/80 rounded-lg border border-slate-800 p-2 relative">
                   <svg id="loss-chart-svg" class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                    <!-- Grid lines -->
                     <line x1="0" y1="25" x2="100" y2="25" stroke="#1e293b" stroke-dasharray="2" stroke-width="0.5"/>
                     <line x1="0" y1="50" x2="100" y2="50" stroke="#1e293b" stroke-dasharray="2" stroke-width="0.5"/>
                     <line x1="0" y1="75" x2="100" y2="75" stroke="#1e293b" stroke-dasharray="2" stroke-width="0.5"/>
-                    <!-- Loss Polyline -->
                     <polyline id="loss-polyline" fill="none" stroke="#2dd4bf" stroke-width="2" points="" />
                   </svg>
                 </div>
@@ -410,93 +400,163 @@
         </div>
       </section>
 
-      <!-- ================= TAB 3: BRAIN & EXPORT ================= -->
-      <section id="brain-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
-        <div class="p-4 border-b border-slate-800 bg-slate-900/50">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-microchip text-emerald-400"></i>
-            Model Brain & Storage Inspector
-          </h2>
-          <p class="text-xs text-slate-400">Inspect neural parameter weights, vocabulary, and manage JSON exports</p>
+      <!-- ================= TAB 3: MODELS HUB ================= -->
+      <section id="models-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-cubes text-emerald-400"></i>
+              Multi-Model Hub & Brain Export
+            </h2>
+            <p class="text-xs text-slate-400">Create, switch, export, and manage multiple AI brains</p>
+          </div>
+
+          <button id="hub-create-btn" class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span>New Model</span>
+          </button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
-          <!-- Specs Cards -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span class="text-[10px] text-slate-500 block uppercase">Vocabulary</span>
-              <span id="brain-vocab-count" class="text-lg font-bold text-white">0</span>
-              <span class="text-[10px] text-slate-400 block">Unique tokens</span>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span class="text-[10px] text-slate-500 block uppercase">Parameters</span>
-              <span id="brain-param-count" class="text-lg font-bold text-accent-400">0</span>
-              <span class="text-[10px] text-slate-400 block">Trainable weights</span>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span class="text-[10px] text-slate-500 block uppercase">Memory Footprint</span>
-              <span id="brain-mem-size" class="text-lg font-bold text-brand-400">~0 KB</span>
-              <span class="text-[10px] text-slate-400 block">JSON payload</span>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-              <span class="text-[10px] text-slate-500 block uppercase">Last Trained</span>
-              <span id="brain-last-trained" class="text-xs font-semibold text-slate-200 mt-1 block">Never</span>
+          <!-- Models List Cards Container -->
+          <div class="space-y-2">
+            <span class="text-xs font-semibold text-slate-300 block">Saved AI Models</span>
+            <div id="models-card-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <!-- Dynamically rendered model cards -->
             </div>
           </div>
 
-          <!-- Vocabulary Explorer -->
-          <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-slate-300">
-                <i class="fa-solid fa-list-ol text-brand-400 mr-1"></i> Learned Vocabulary Inspector
-              </span>
-              <input type="text" id="vocab-search" placeholder="Search tokens..." class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-brand-500 w-36">
-            </div>
-            <div id="vocab-chips-container" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2 bg-slate-950 rounded-lg border border-slate-800/80 font-mono text-[11px]">
-              <span class="text-slate-500 italic">No training vocabulary built yet.</span>
-            </div>
-          </div>
-
-          <!-- Export / Import & Persistence Box -->
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <!-- Master Backup & JSON Import / Export -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3 mt-4">
             <span class="text-xs font-semibold text-slate-300 block border-b border-slate-800 pb-2">
-              <i class="fa-solid fa-floppy-disk text-emerald-400 mr-1"></i> Brain Import / Export
+              <i class="fa-solid fa-floppy-disk text-emerald-400 mr-1"></i> Brain Import & Export
             </span>
             <p class="text-xs text-slate-400 leading-relaxed">
-              Export your model's complete brain (`.json`) containing all trained weights and vocabulary. You can commit this file to your GitHub repository or transfer it between devices!
+              Export your trained models as `.json` brain files to share across devices or commit to your GitHub repository!
             </p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <!-- Export button -->
-              <button id="export-brain-btn" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition border border-slate-700">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button id="export-active-btn" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition border border-slate-700">
                 <i class="fa-solid fa-download text-emerald-400"></i>
-                <span>Export Model (.json)</span>
+                <span>Export Active Model (.json)</span>
               </button>
 
-              <!-- Import button -->
-              <label class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition border border-slate-700 cursor-pointer">
+              <button id="export-all-btn" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition border border-slate-700">
+                <i class="fa-solid fa-box-archive text-amber-400"></i>
+                <span>Export All Models Bundle</span>
+              </button>
+
+              <label class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-xs flex items-center justify-center gap-2 transition border border-slate-700 cursor-pointer col-span-1 sm:col-span-2">
                 <i class="fa-solid fa-upload text-brand-400"></i>
-                <span>Import Model (.json)</span>
+                <span>Import Model JSON / Bundle File</span>
                 <input type="file" id="import-brain-file" accept=".json" class="hidden">
               </label>
             </div>
           </div>
+        </div>
+      </section>
 
-          <!-- Danger Zone -->
-          <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-900/40 flex items-center justify-between">
-            <div>
-              <span class="text-xs font-bold text-rose-300 block">Reset Model Brain</span>
-              <span class="text-[11px] text-rose-400/80">Wipe all learned parameters and reset weights to random initialization</span>
+      <!-- ================= TAB 4: HOW TO GUIDE ================= -->
+      <section id="guide-tab" class="tab-content flex-1 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 bg-slate-900/50">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-book-open text-amber-400"></i>
+            How To Train & Manage Your Pure JS AI
+          </h2>
+          <p class="text-xs text-slate-400">Mastering formatting, anti-repetition tuning, and multi-device setup</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-6 text-xs leading-relaxed text-slate-300">
+          
+          <!-- Guide Section 1 -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <h3 class="text-sm font-bold text-brand-400 flex items-center gap-2">
+              <i class="fa-solid fa-pen-to-square"></i> 1. How to Format Training Text
+            </h3>
+            <p>
+              Your model learns by reading dialogue transitions. Always format training data as clean <b>User:</b> and <b>AI:</b> turns:
+            </p>
+            <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-200">
+              User: Hello!<br>
+              AI: Hi there! How can I help you today?<br>
+              User: What is pure JavaScript?<br>
+              AI: Pure JavaScript means running code without external libraries or servers.
             </div>
-            <button id="wipe-brain-btn" class="px-3 py-1.5 rounded-lg bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white border border-rose-500/40 text-xs font-medium transition">
-              Reset Brain
-            </button>
           </div>
+
+          <!-- Guide Section 2 -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+              <i class="fa-solid fa-arrows-spin"></i> 2. Fixing Loops & Repetition
+            </h3>
+            <p>
+              If your model starts repeating the same sentence (e.g. <i>"hello im good how are you hello im good..."</i>):
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-slate-400 pl-1">
+              <li><b>Increase Repetition Penalty:</b> Set the slider between <code class="text-amber-300 font-mono">1.2</code> and <code class="text-amber-300 font-mono">1.5</code> in Chat Studio.</li>
+              <li><b>Lower Max Tokens:</b> Keep response limits around <code class="text-accent-300 font-mono">30-50</code> tokens for short Q&A.</li>
+              <li><b>Use Stop Words:</b> The AI engine automatically cuts off generation as soon as it sees <code class="text-brand-300 font-mono">User:</code> or a double newline.</li>
+              <li><b>Use Correct / Teach:</b> Click the yellow graduation cap under a repeating response, type the ideal short answer, and save it!</li>
+            </ul>
+          </div>
+
+          <!-- Guide Section 3 -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+            <h3 class="text-sm font-bold text-accent-400 flex items-center gap-2">
+              <i class="fa-solid fa-mobile-screen-button"></i> 3. Syncing to Phone & GitHub Pages
+            </h3>
+            <p>
+              Because this app runs locally inside browser storage, trained models do not automatically sync across different devices over the cloud:
+            </p>
+            <ol class="list-decimal list-inside space-y-1 text-slate-400 pl-1">
+              <li>Train your model on your PC where pasting text is easiest.</li>
+              <li>Go to <b>Models Hub</b> and click <b>Export Active Model (.json)</b>.</li>
+              <li>Send that JSON file to your phone.</li>
+              <li>Open your live GitHub Pages link on your phone (<code class="text-slate-200 font-mono">https://username.github.io/repo/</code>) and click <b>Import Model JSON</b>!</li>
+            </ol>
+          </div>
+
         </div>
       </section>
 
     </div>
   </main>
+
+  <!-- Create / Rename Model Modal -->
+  <div id="model-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-md w-full rounded-2xl border border-slate-800 p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modal-title" class="text-sm font-bold text-white">Create New AI Model</h3>
+        <button id="close-model-modal" class="text-slate-400 hover:text-white text-sm p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="modal-model-name" class="text-slate-300 block mb-1 font-semibold">Model Name:</label>
+          <input type="text" id="modal-model-name" placeholder="e.g. Study Partner, Science Bot" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2 text-white focus:outline-none transition">
+        </div>
+
+        <div>
+          <label class="text-slate-300 block mb-1 font-semibold">Engine Architecture:</label>
+          <select id="modal-model-type" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2 text-white focus:outline-none transition">
+            <option value="neural">Neural Network (Tiny MLP)</option>
+            <option value="ngram">Hybrid Context N-Gram Engine</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button id="cancel-model-btn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium">
+          Cancel
+        </button>
+        <button id="save-model-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">
+          Save Model
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Correct / Teach Modal -->
   <div id="teach-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
@@ -529,7 +589,7 @@
         <button id="cancel-teach-btn" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium">
           Cancel
         </button>
-        <button id="submit-teach-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-brand-500/20">
+        <button id="submit-teach-btn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold flex items-center gap-1.5">
           <i class="fa-solid fa-graduation-cap"></i>
           <span>Train on Correction</span>
         </button>
@@ -537,12 +597,10 @@
     </div>
   </div>
 
-  <!-- ================= JAVASCRIPT AI ENGINES & APPLICATION LOGIC ================= -->
+  <!-- JAVASCRIPT ENGINES & LOGIC -->
   <script>
     /**
-     * ------------------------------------------------------------------
-     * 1. TOKENIZER (Pure Native JS Regex Word & Punctuation Tokenizer)
-     * ------------------------------------------------------------------
+     * TOKENIZER
      */
     class Tokenizer {
       constructor() {
@@ -554,7 +612,6 @@
         this.vocab = new Map();
         this.idToToken = [];
 
-        // Add special tokens
         this.addToken(this.PAD);
         this.addToken(this.UNK);
         this.addToken(this.BOS);
@@ -573,7 +630,6 @@
 
       tokenize(text) {
         if (!text) return [];
-        // Match words, numbers, or individual punctuation marks
         const matches = text.toLowerCase().match(/\b[\w']+\b|[^\w\s]/g);
         return matches || [];
       }
@@ -599,11 +655,7 @@
     }
 
     /**
-     * ------------------------------------------------------------------
-     * 2. PURE JAVASCRIPT NEURAL NETWORK (Autoregressive Token MLP)
-     * ------------------------------------------------------------------
-     * Architecture: Token Context Embeddings -> Dense Hidden Layer (Tanh) -> Softmax Logits
-     * Backpropagation: Analytical Cross-Entropy SGD
+     * NEURAL NETWORK ENGINE (With Anti-Repetition Sampling & Stop Detection)
      */
     class TinyNeuralLM {
       constructor(contextSize = 2, embDim = 16, hiddenDim = 32) {
@@ -612,11 +664,11 @@
         this.hiddenDim = hiddenDim;
         this.tokenizer = new Tokenizer();
 
-        this.E = null;  // Embeddings: [VocabSize, embDim]
-        this.W1 = null; // Layer 1 Weights: [(contextSize * embDim), hiddenDim]
-        this.b1 = null; // Layer 1 Bias: [hiddenDim]
-        this.W2 = null; // Layer 2 Weights: [hiddenDim, VocabSize]
-        this.b2 = null; // Layer 2 Bias: [VocabSize]
+        this.E = null;
+        this.W1 = null;
+        this.b1 = null;
+        this.W2 = null;
+        this.b2 = null;
 
         this.lossHistory = [];
         this.isTrained = false;
@@ -627,7 +679,6 @@
         const V = this.tokenizer.size();
         const inDim = this.contextSize * this.embDim;
 
-        // Xavier / Glorot Initialization
         this.E = new Float32Array(V * this.embDim);
         for (let i = 0; i < this.E.length; i++) {
           this.E[i] = (Math.random() - 0.5) * (2 / Math.sqrt(this.embDim));
@@ -653,7 +704,6 @@
         return this.E.length + this.W1.length + this.b1.length + this.W2.length + this.b2.length;
       }
 
-      // Prepare training sequences (Context Window -> Target Token)
       prepareDataset(text) {
         const tokens = this.tokenizer.buildVocabFromText(text);
         this.initWeights();
@@ -661,7 +711,6 @@
         const encoded = this.tokenizer.encode(tokens);
         const X = [];
         const Y = [];
-
         const padId = this.tokenizer.vocab.get(this.tokenizer.PAD);
 
         for (let i = 0; i < encoded.length; i++) {
@@ -677,12 +726,10 @@
         return { X, Y, totalTokens: tokens.length };
       }
 
-      // Forward Pass
       forward(contextIds) {
         const V = this.tokenizer.size();
         const inDim = this.contextSize * this.embDim;
 
-        // 1. Concatenate Embeddings
         const xEmb = new Float32Array(inDim);
         for (let c = 0; c < this.contextSize; c++) {
           const tokenVal = contextIds[c];
@@ -692,19 +739,15 @@
           }
         }
 
-        // 2. Hidden Layer (Tanh)
-        const hIn = new Float32Array(this.hiddenDim);
         const hOut = new Float32Array(this.hiddenDim);
         for (let j = 0; j < this.hiddenDim; j++) {
           let sum = this.b1[j];
           for (let i = 0; i < inDim; i++) {
             sum += xEmb[i] * this.W1[i * this.hiddenDim + j];
           }
-          hIn[j] = sum;
-          hOut[j] = Math.tanh(sum); // Tanh Activation
+          hOut[j] = Math.tanh(sum);
         }
 
-        // 3. Output Layer (Logits)
         const logits = new Float32Array(V);
         let maxLogit = -Infinity;
         for (let k = 0; k < V; k++) {
@@ -716,7 +759,6 @@
           if (sum > maxLogit) maxLogit = sum;
         }
 
-        // 4. Softmax Probabilities
         const probs = new Float32Array(V);
         let sumExp = 0;
         for (let k = 0; k < V; k++) {
@@ -728,26 +770,21 @@
           probs[k] /= sumExp;
         }
 
-        return { xEmb, hOut, probs };
+        return { xEmb, hOut, probs, logits };
       }
 
-      // Single Backpropagation Step (SGD)
       trainStep(contextIds, targetId, lr) {
         const V = this.tokenizer.size();
         const inDim = this.contextSize * this.embDim;
 
-        // Forward
         const { xEmb, hOut, probs } = this.forward(contextIds);
 
-        // Loss
         const targetProb = Math.max(probs[targetId], 1e-10);
         const loss = -Math.log(targetProb);
 
-        // Gradient of Softmax + Cross-Entropy: dLogits = probs; dLogits[target] -= 1
         const dLogits = new Float32Array(probs);
         dLogits[targetId] -= 1.0;
 
-        // Gradients for W2 & b2
         const dHOut = new Float32Array(this.hiddenDim);
         for (let j = 0; j < this.hiddenDim; j++) {
           let sumGrad = 0;
@@ -760,13 +797,11 @@
           dHOut[j] = sumGrad;
         }
 
-        // Gradient of Tanh: dHIn = dHOut * (1 - hOut^2)
         const dHIn = new Float32Array(this.hiddenDim);
         for (let j = 0; j < this.hiddenDim; j++) {
           dHIn[j] = dHOut[j] * (1.0 - hOut[j] * hOut[j]);
         }
 
-        // Gradients for W1 & b1 & xEmb
         const dXEmb = new Float32Array(inDim);
         for (let i = 0; i < inDim; i++) {
           let sumGrad = 0;
@@ -778,12 +813,10 @@
           dXEmb[i] = sumGrad;
         }
 
-        // Update bias b1
         for (let j = 0; j < this.hiddenDim; j++) {
           this.b1[j] -= lr * dHIn[j];
         }
 
-        // Update Embeddings
         for (let c = 0; c < this.contextSize; c++) {
           const tid = contextIds[c];
           if (tid !== undefined && tid < V) {
@@ -796,20 +829,19 @@
         return loss;
       }
 
-      // Autoregressive Token Generation
-      generate(prompt, maxTokens = 50, temperature = 0.7) {
-        if (!this.E) return "Model is not trained yet. Please train it in the Train Studio tab!";
+      generate(prompt, maxTokens = 40, temperature = 0.6, repetitionPenalty = 1.25) {
+        if (!this.E) return "Model has not been trained yet. Please switch to Train Studio and click Train!";
 
         const promptTokens = this.tokenizer.tokenize(prompt);
         let encoded = this.tokenizer.encode(promptTokens);
-
         const padId = this.tokenizer.vocab.get(this.tokenizer.PAD);
+
         if (encoded.length === 0) encoded = [padId];
 
         const generatedIds = [];
+        const seenCounts = new Map();
 
         for (let step = 0; step < maxTokens; step++) {
-          // Extract context
           const currentSeq = [...encoded, ...generatedIds];
           const context = [];
           for (let c = this.contextSize; c > 0; c--) {
@@ -819,16 +851,22 @@
 
           const { probs } = this.forward(context);
 
-          // Apply Temperature
+          // Apply Repetition Penalty & Temperature
           const adjustedProbs = new Float32Array(probs.length);
           let sum = 0;
+
           for (let i = 0; i < probs.length; i++) {
-            const p = Math.pow(Math.max(probs[i], 1e-10), 1 / Math.max(temperature, 0.1));
+            let p = probs[i];
+            // Apply penalty if token was previously generated
+            if (seenCounts.has(i)) {
+              p /= Math.pow(repetitionPenalty, seenCounts.get(i));
+            }
+            p = Math.pow(Math.max(p, 1e-10), 1 / Math.max(temperature, 0.1));
             adjustedProbs[i] = p;
             sum += p;
           }
 
-          // Sample from distribution
+          // Sample Token
           let rand = Math.random() * sum;
           let nextId = 0;
           for (let i = 0; i < adjustedProbs.length; i++) {
@@ -839,23 +877,35 @@
             }
           }
 
-          // Don't generate unknown or padding tokens if possible
-          if (nextId === padId) nextId = Math.floor(Math.random() * (this.tokenizer.size() - 4)) + 4;
+          const nextTokenStr = this.tokenizer.idToToken[nextId] || '';
+
+          // STOP CONDITIONS
+          if (nextTokenStr === 'user' || nextTokenStr === 'q' || nextTokenStr === 'human') {
+            break;
+          }
 
           generatedIds.push(nextId);
+          seenCounts.set(nextId, (seenCounts.get(nextId) || 0) + 1);
+
+          // Check N-Gram Loop
+          if (generatedIds.length >= 6) {
+            const len = generatedIds.length;
+            if (generatedIds[len - 1] === generatedIds[len - 4] &&
+                generatedIds[len - 2] === generatedIds[len - 5] &&
+                generatedIds[len - 3] === generatedIds[len - 6]) {
+              break; // Prevent 3-token loop repetition
+            }
+          }
         }
 
         const decoded = this.tokenizer.decode(generatedIds);
-
-        // Format clean text with spaces & punctuation fix
         let result = decoded.join(' ')
           .replace(/\s+([,.?!':;])/g, '$1')
           .replace(/\s+'/g, "'");
 
-        return result;
+        return result || "I understand.";
       }
 
-      // Serialize Brain
       toJSON() {
         return {
           type: 'neural',
@@ -873,36 +923,33 @@
         };
       }
 
-      // Load Brain from JSON
       fromJSON(data) {
-        this.contextSize = data.contextSize;
-        this.embDim = data.embDim;
-        this.hiddenDim = data.hiddenDim;
+        this.contextSize = data.contextSize || 2;
+        this.embDim = data.embDim || 16;
+        this.hiddenDim = data.hiddenDim || 32;
         this.lossHistory = data.lossHistory || [];
         this.epochsTrained = data.epochsTrained || 0;
 
         this.tokenizer = new Tokenizer();
-        data.vocab.forEach(t => this.tokenizer.addToken(t));
+        if (data.vocab) data.vocab.forEach(t => this.tokenizer.addToken(t));
 
-        this.E = Float32Array.from(data.E);
-        this.W1 = Float32Array.from(data.W1);
-        this.b1 = Float32Array.from(data.b1);
-        this.W2 = Float32Array.from(data.W2);
-        this.b2 = Float32Array.from(data.b2);
+        this.E = Float32Array.from(data.E || []);
+        this.W1 = Float32Array.from(data.W1 || []);
+        this.b1 = Float32Array.from(data.b1 || []);
+        this.W2 = Float32Array.from(data.W2 || []);
+        this.b2 = Float32Array.from(data.b2 || []);
         this.isTrained = true;
       }
     }
 
     /**
-     * ------------------------------------------------------------------
-     * 3. HYBRID N-GRAM CONTEXT ENGINE (Instant Statistical Matcher)
-     * ------------------------------------------------------------------
+     * HYBRID N-GRAM ENGINE
      */
     class HybridNGramEngine {
       constructor() {
         this.tokenizer = new Tokenizer();
-        this.ngrams = new Map(); // Key: "token1|token2", Value: Map(nextToken -> count)
-        this.qaPairs = [];       // Memory bank of Q&A patterns
+        this.ngrams = new Map();
+        this.qaPairs = [];
         this.isTrained = false;
         this.epochsTrained = 1;
       }
@@ -910,7 +957,6 @@
       train(text) {
         const tokens = this.tokenizer.buildVocabFromText(text);
 
-        // Build 1-gram to 3-gram transitions
         for (let order = 1; order <= 3; order++) {
           for (let i = 0; i < tokens.length - order; i++) {
             const context = tokens.slice(i, i + order).join('|');
@@ -924,8 +970,7 @@
           }
         }
 
-        // Parse sentence/Q&A pairs
-        const lines = text.split(/\n+|\.|\\?/);
+        const lines = text.split(/\n+|\./);
         lines.forEach(line => {
           if (line.includes(':')) {
             const parts = line.split(':');
@@ -947,19 +992,17 @@
         return count;
       }
 
-      generate(prompt, maxTokens = 50, temperature = 0.7) {
+      generate(prompt, maxTokens = 40, temperature = 0.6) {
         if (!this.isTrained) return "N-Gram model is empty. Please feed it training text!";
 
         const cleanPrompt = prompt.toLowerCase().trim();
 
-        // 1. Direct Q&A Context Matching
         for (let pair of this.qaPairs) {
           if (cleanPrompt.includes(pair.prompt) || pair.prompt.includes(cleanPrompt)) {
             return pair.response;
           }
         }
 
-        // 2. Statistical N-Gram Backoff Sampling
         const promptTokens = this.tokenizer.tokenize(prompt);
         let currentTokens = [...promptTokens];
         const generated = [];
@@ -967,7 +1010,6 @@
         for (let step = 0; step < maxTokens; step++) {
           let nextToken = null;
 
-          // Try 3-gram down to 1-gram
           for (let order = 2; order >= 1; order--) {
             if (currentTokens.length >= order) {
               const ctx = currentTokens.slice(-order).join('|');
@@ -979,16 +1021,12 @@
             }
           }
 
-          // Fallback random word from vocab
-          if (!nextToken) {
-            const vocabSize = this.tokenizer.size();
-            nextToken = this.tokenizer.idToToken[Math.floor(Math.random() * (vocabSize - 4)) + 4];
-          }
+          if (!nextToken || nextToken === 'user' || nextToken === 'q') break;
 
           generated.push(nextToken);
           currentTokens.push(nextToken);
 
-          if (['.', '!', '?'].includes(nextToken) && step > 10) break;
+          if (['.', '!', '?'].includes(nextToken) && step > 8) break;
         }
 
         return generated.join(' ')
@@ -1029,12 +1067,14 @@
 
       fromJSON(data) {
         this.tokenizer = new Tokenizer();
-        data.vocab.forEach(t => this.tokenizer.addToken(t));
+        if (data.vocab) data.vocab.forEach(t => this.tokenizer.addToken(t));
 
         this.ngrams = new Map();
-        Object.keys(data.ngrams).forEach(key => {
-          this.ngrams.set(key, new Map(data.ngrams[key]));
-        });
+        if (data.ngrams) {
+          Object.keys(data.ngrams).forEach(key => {
+            this.ngrams.set(key, new Map(data.ngrams[key]));
+          });
+        }
 
         this.qaPairs = data.qaPairs || [];
         this.isTrained = true;
@@ -1042,56 +1082,108 @@
     }
 
     /**
-     * ------------------------------------------------------------------
-     * 4. APP CONTROLLER & UI MANAGEMENT
-     * ------------------------------------------------------------------
+     * MULTI-MODEL MANAGER & APP CONTROLLER
      */
     class AIApp {
       constructor() {
-        this.activeEngineType = 'neural'; // 'neural' | 'ngram'
-        this.neuralLM = new TinyNeuralLM(2, 16, 32);
-        this.ngramEngine = new HybridNGramEngine();
+        this.models = [];
+        this.activeModelId = null;
 
         this.isTraining = false;
         this.stopRequested = false;
 
         this.initUI();
-        this.loadPresets('assistant');
-        this.tryLoadFromLocalStorage();
+        this.loadModelsFromStorage();
+
+        if (this.models.length === 0) {
+          this.createNewModel('Default AI', 'neural');
+        } else {
+          this.activeModelId = this.models[0].id;
+        }
+
+        this.refreshModelSelect();
         this.updateStatsDisplay();
       }
 
-      getActiveModel() {
-        return this.activeEngineType === 'neural' ? this.neuralLM : this.ngramEngine;
+      getActiveModelObj() {
+        return this.models.find(m => m.id === this.activeModelId) || this.models[0];
+      }
+
+      createNewModel(name, type) {
+        const newModel = {
+          id: 'model-' + Date.now(),
+          name: name || 'Custom AI',
+          type: type || 'neural',
+          engine: type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine(),
+          createdAt: new Date().toLocaleDateString()
+        };
+        this.models.push(newModel);
+        this.activeModelId = newModel.id;
+        this.saveModelsToStorage();
+        this.refreshModelSelect();
+        this.updateStatsDisplay();
+        return newModel;
+      }
+
+      deleteModel(id) {
+        if (this.models.length <= 1) {
+          this.showToast("Cannot delete the only remaining model!", "error");
+          return;
+        }
+        this.models = this.models.filter(m => m.id !== id);
+        if (this.activeModelId === id) {
+          this.activeModelId = this.models[0].id;
+        }
+        this.saveModelsToStorage();
+        this.refreshModelSelect();
+        this.updateStatsDisplay();
+        this.showToast("Model deleted.");
+      }
+
+      duplicateModel(id) {
+        const src = this.models.find(m => m.id === id);
+        if (!src) return;
+
+        const copy = this.createNewModel(src.name + ' (Copy)', src.type);
+        const jsonData = src.engine.toJSON();
+        copy.engine.fromJSON(jsonData);
+        this.saveModelsToStorage();
+        this.updateStatsDisplay();
+        this.showToast(`Duplicated ${src.name}!`);
       }
 
       initUI() {
-        // Tab Switcher
+        // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const targetId = btn.getAttribute('tab-target');
-            this.switchTab(targetId);
+          btn.addEventListener('click', () => {
+            this.switchTab(btn.getAttribute('tab-target'));
           });
         });
 
-        // Sliders binding
+        // Sliders
         this.bindSlider('chat-temp', 'temp-val');
+        this.bindSlider('chat-rep-penalty', 'rep-val');
         this.bindSlider('chat-max-tokens', 'max-tokens-val');
         this.bindSlider('param-epochs', 'val-epochs');
         this.bindSlider('param-lr', 'val-lr');
         this.bindSlider('param-context', 'val-context');
         this.bindSlider('param-hidden', 'val-hidden');
 
-        // Engine type radio toggles
-        document.querySelectorAll('input[name="engine-type"]').forEach(radio => {
-          radio.addEventListener('change', (e) => {
-            this.activeEngineType = e.target.value;
-            this.updateStatsDisplay();
-            this.showToast(`Switched active engine to: ${this.activeEngineType === 'neural' ? 'Neural Net' : 'N-Gram'}`);
-          });
+        // Model selector dropdown in header
+        document.getElementById('active-model-select').addEventListener('change', (e) => {
+          this.activeModelId = e.target.value;
+          this.updateStatsDisplay();
+          this.showToast(`Switched active model to: ${this.getActiveModelObj().name}`);
         });
 
-        // Chat input & Send
+        // Create Model Modals
+        document.getElementById('new-model-modal-btn').addEventListener('click', () => this.openModelModal());
+        document.getElementById('hub-create-btn').addEventListener('click', () => this.openModelModal());
+        document.getElementById('close-model-modal').addEventListener('click', () => this.closeModelModal());
+        document.getElementById('cancel-model-btn').addEventListener('click', () => this.closeModelModal());
+        document.getElementById('save-model-btn').addEventListener('click', () => this.handleSaveNewModel());
+
+        // Chat send
         document.getElementById('send-msg-btn').addEventListener('click', () => this.handleSendMessage());
         document.getElementById('chat-input').addEventListener('keydown', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -1102,43 +1194,30 @@
 
         document.getElementById('clear-chat-btn').addEventListener('click', () => {
           document.getElementById('chat-messages').innerHTML = '';
-          this.showToast("Chat history cleared.");
+          this.showToast("Chat cleared.");
         });
 
-        // Presets
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const p = btn.getAttribute('data-preset');
-            this.loadPresets(p);
-          });
+        // Presets selector
+        document.getElementById('preset-select').addEventListener('change', (e) => {
+          this.loadPresetText(e.target.value);
         });
 
-        // Training Controls
+        // Training
         document.getElementById('start-train-btn').addEventListener('click', () => this.startTraining());
-        document.getElementById('stop-train-btn').addEventListener('click', () => {
-          this.stopRequested = true;
-        });
-
-        // File upload
+        document.getElementById('stop-train-btn').addEventListener('click', () => this.stopRequested = true);
         document.getElementById('file-upload').addEventListener('change', (e) => this.handleFileUpload(e));
 
-        // Export & Import Brain
-        document.getElementById('export-brain-btn').addEventListener('click', () => this.exportBrainJSON());
-        document.getElementById('import-brain-file').addEventListener('change', (e) => this.importBrainJSON(e));
-        document.getElementById('wipe-brain-btn').addEventListener('click', () => this.resetBrain());
-        document.getElementById('quick-reset-btn').addEventListener('click', () => this.resetBrain());
+        // Export/Import
+        document.getElementById('export-active-btn').addEventListener('click', () => this.exportActiveModelJSON());
+        document.getElementById('export-all-btn').addEventListener('click', () => this.exportAllModelsBundle());
+        document.getElementById('import-brain-file').addEventListener('change', (e) => this.importJSONFile(e));
 
-        // Teaching Modal
+        // Teach Modal
         document.getElementById('close-teach-modal').addEventListener('click', () => this.closeTeachModal());
         document.getElementById('cancel-teach-btn').addEventListener('click', () => this.closeTeachModal());
         document.getElementById('submit-teach-btn').addEventListener('click', () => this.submitCorrection());
 
-        // Search Vocab
-        document.getElementById('vocab-search').addEventListener('input', (e) => {
-          this.renderVocabChips(e.target.value);
-        });
-
-        // Textarea token estimator
+        // Token estimator
         document.getElementById('training-text').addEventListener('input', (e) => {
           const tokens = e.target.value.split(/\s+/).filter(Boolean).length;
           document.getElementById('corpus-tokens').innerText = `Tokens: ~${tokens}`;
@@ -1169,9 +1248,7 @@
       bindSlider(sliderId, displayId) {
         const slider = document.getElementById(sliderId);
         const display = document.getElementById(displayId);
-        slider.addEventListener('input', (e) => {
-          display.innerText = e.target.value;
-        });
+        slider.addEventListener('input', (e) => display.innerText = e.target.value);
       }
 
       showToast(message, type = 'info') {
@@ -1193,39 +1270,35 @@
         }, 3500);
       }
 
-      // ================= CHAT INFERENCE LOGIC =================
+      // CHAT LOGIC
       handleSendMessage() {
         const inputEl = document.getElementById('chat-input');
         const prompt = inputEl.value.trim();
         if (!prompt) return;
 
         inputEl.value = '';
-
-        // Render User Message
         this.appendChatMessage('user', prompt);
 
-        const model = this.getActiveModel();
+        const activeObj = this.getActiveModelObj();
+        const model = activeObj.engine;
 
-        // If Live Learn is enabled, update model with prompt
-        const liveLearn = document.getElementById('live-learn-toggle').checked;
-        if (liveLearn) {
-          if (this.activeEngineType === 'ngram') {
-            this.ngramEngine.train(prompt);
-          }
-        }
-
-        // Generate response with typing indicator
         const temp = parseFloat(document.getElementById('chat-temp').value);
+        const repPenalty = parseFloat(document.getElementById('chat-rep-penalty').value);
         const maxTokens = parseInt(document.getElementById('chat-max-tokens').value);
+
+        // Live Learn Mode
+        if (document.getElementById('live-learn-toggle').checked && activeObj.type === 'ngram') {
+          model.train(prompt);
+        }
 
         const typingBubble = this.appendTypingIndicator();
 
         setTimeout(() => {
-          const response = model.generate(prompt, maxTokens, temp);
+          const response = model.generate(prompt, maxTokens, temp, repPenalty);
           typingBubble.remove();
           this.appendChatMessage('ai', response, prompt);
           this.updateStatsDisplay();
-        }, 300);
+        }, 200);
       }
 
       appendChatMessage(role, text, originalPrompt = '') {
@@ -1243,7 +1316,6 @@
             </div>
           `;
         } else {
-          const msgId = 'ai-msg-' + Date.now();
           wrapper.innerHTML = `
             <div class="w-8 h-8 rounded-lg bg-brand-600/30 border border-brand-500/40 text-brand-400 flex items-center justify-center shrink-0 text-xs font-mono font-bold">
               AI
@@ -1252,14 +1324,9 @@
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
                 ${this.escapeHTML(text)}
               </div>
-              <!-- Action toolbar -->
               <div class="flex items-center gap-2 px-1 text-[11px] text-slate-400">
                 <button class="teach-btn hover:text-amber-300 transition flex items-center gap-1" data-prompt="${this.escapeHTML(originalPrompt)}" data-response="${this.escapeHTML(text)}">
                   <i class="fa-solid fa-graduation-cap text-amber-400"></i> Correct / Teach
-                </button>
-                <span class="text-slate-700">•</span>
-                <button class="copy-btn hover:text-white transition" onclick="navigator.clipboard.writeText(\`${this.escapeHTML(text)}\`)">
-                  <i class="fa-solid fa-copy"></i> Copy
                 </button>
               </div>
             </div>
@@ -1294,9 +1361,9 @@
         return wrapper;
       }
 
-      // ================= TEACH / CORRECT MODAL =================
+      // TEACH MODAL
       openTeachModal(prompt, currentResponse) {
-        document.getElementById('teach-prompt-display').innerText = prompt || "(No user prompt found)";
+        document.getElementById('teach-prompt-display').innerText = prompt || "(No user prompt)";
         document.getElementById('teach-ideal-input').value = currentResponse || "";
         document.getElementById('teach-modal').classList.remove('hidden');
       }
@@ -1308,35 +1375,34 @@
       submitCorrection() {
         const prompt = document.getElementById('teach-prompt-display').innerText;
         const idealResponse = document.getElementById('teach-ideal-input').value.trim();
-
         if (!idealResponse) return;
 
-        const combinedPair = `Q: ${prompt} A: ${idealResponse}\n${prompt} ${idealResponse}`;
+        const activeObj = this.getActiveModelObj();
+        const combined = `User: ${prompt}\nAI: ${idealResponse}\n`;
 
-        if (this.activeEngineType === 'neural') {
-          const dataset = this.neuralLM.prepareDataset(combinedPair);
-          const lr = 0.1;
-          for (let ep = 0; ep < 30; ep++) {
+        if (activeObj.type === 'neural') {
+          const dataset = activeObj.engine.prepareDataset(combined);
+          for (let ep = 0; ep < 25; ep++) {
             for (let i = 0; i < dataset.X.length; i++) {
-              this.neuralLM.trainStep(dataset.X[i], dataset.Y[i], lr);
+              activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], 0.1);
             }
           }
-          this.neuralLM.isTrained = true;
+          activeObj.engine.isTrained = true;
         } else {
-          this.ngramEngine.train(combinedPair);
+          activeObj.engine.train(combined);
         }
 
-        this.saveToLocalStorage();
+        this.saveModelsToStorage();
         this.updateStatsDisplay();
         this.closeTeachModal();
-        this.showToast("Model successfully trained on your corrected response!");
+        this.showToast("Response corrected and model retrained!");
       }
 
-      // ================= TRAINING STUDIO =================
+      // TRAINING STUDIO
       async startTraining() {
         const text = document.getElementById('training-text').value.trim();
         if (!text) {
-          this.showToast("Please enter some training text first!", "error");
+          this.showToast("Please enter or load training text first!", "error");
           return;
         }
 
@@ -1346,17 +1412,26 @@
         document.getElementById('start-train-btn').disabled = true;
         document.getElementById('stop-train-btn').disabled = false;
         document.getElementById('train-status-dot').className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-        document.getElementById('train-status-text').innerText = "Training in progress...";
+        document.getElementById('train-status-text').innerText = "Training active model...";
+
+        const activeObj = this.getActiveModelObj();
+        const selectedEngineType = document.querySelector('input[name="engine-type"]:checked').value;
+
+        // Switch active model engine type if changed
+        if (activeObj.type !== selectedEngineType) {
+          activeObj.type = selectedEngineType;
+          activeObj.engine = selectedEngineType === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();
+        }
 
         const epochs = parseInt(document.getElementById('param-epochs').value);
         const lr = parseFloat(document.getElementById('param-lr').value);
         const contextSize = parseInt(document.getElementById('param-context').value);
         const hiddenDim = parseInt(document.getElementById('param-hidden').value);
 
-        if (this.activeEngineType === 'neural') {
-          this.neuralLM.contextSize = contextSize;
-          this.neuralLM.hiddenDim = hiddenDim;
-          const dataset = this.neuralLM.prepareDataset(text);
+        if (activeObj.type === 'neural') {
+          activeObj.engine.contextSize = contextSize;
+          activeObj.engine.hiddenDim = hiddenDim;
+          const dataset = activeObj.engine.prepareDataset(text);
 
           const lossPoints = [];
 
@@ -1365,28 +1440,26 @@
 
             let epochLoss = 0;
             for (let i = 0; i < dataset.X.length; i++) {
-              const loss = this.neuralLM.trainStep(dataset.X[i], dataset.Y[i], lr);
+              const loss = activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
               epochLoss += loss;
             }
 
             const avgLoss = epochLoss / Math.max(1, dataset.X.length);
             lossPoints.push(avgLoss);
-            this.neuralLM.lossHistory.push(avgLoss);
+            activeObj.engine.lossHistory.push(avgLoss);
 
-            // Update UI periodically
             if (epoch % 2 === 0 || epoch === epochs) {
               document.getElementById('train-progress-bar').style.width = `${(epoch / epochs) * 100}%`;
               document.getElementById('current-loss-val').innerText = avgLoss.toFixed(4);
               this.drawLossChart(lossPoints);
-              await new Promise(r => setTimeout(r, 10)); // Allow UI redraw
+              await new Promise(r => setTimeout(r, 10));
             }
           }
 
-          this.neuralLM.epochsTrained += epochs;
-          this.neuralLM.isTrained = true;
+          activeObj.engine.epochsTrained += epochs;
+          activeObj.engine.isTrained = true;
         } else {
-          // N-Gram Engine Training
-          this.ngramEngine.train(text);
+          activeObj.engine.train(text);
           document.getElementById('train-progress-bar').style.width = "100%";
           document.getElementById('current-loss-val').innerText = "0.000 (Exact)";
         }
@@ -1397,9 +1470,9 @@
         document.getElementById('train-status-dot').className = "w-2 h-2 rounded-full bg-emerald-500";
         document.getElementById('train-status-text').innerText = "Training Complete!";
 
-        this.saveToLocalStorage();
+        this.saveModelsToStorage();
         this.updateStatsDisplay();
-        this.showToast("Training session finished!");
+        this.showToast(`Model '${activeObj.name}' trained successfully!`);
       }
 
       drawLossChart(lossPoints) {
@@ -1418,37 +1491,44 @@
         svg.setAttribute('points', pts);
       }
 
-      // ================= PRESETS & FILES =================
-      loadPresets(presetKey) {
-        const txtArea = document.getElementById('training-text');
-        if (presetKey === 'clear') {
-          txtArea.value = '';
-          document.getElementById('corpus-tokens').innerText = "Tokens: ~0";
-          return;
-        }
-
+      loadPresetText(preset) {
+        const area = document.getElementById('training-text');
         const presets = {
-          assistant: `Hello! I am a custom AI language model created directly in JavaScript.
-I run locally in your web browser without sending data to external servers.
-You can teach me facts, conversational responses, and context!
-Q: Who are you? A: I am a self-contained pure JavaScript AI model.
-Q: Where do you run? A: I run locally on your phone or PC inside the web browser.
-Q: How do you learn? A: You can train me by pasting custom text or correcting my answers in real-time.`,
+          assistant: `User: Hello!
+AI: Hi there! How can I assist you today?
+User: What are you?
+AI: I am a custom JavaScript AI model trained directly in your web browser.
+User: Where do you run?
+AI: I run completely offline and locally inside your browser on CPU or GPU.
+User: Thank you!
+AI: You are very welcome! Let me know if you have more questions.`,
 
-          scifi: `In the year 2184, neural synthetic processors bridged quantum computing and bio-interfaces.
-Ship AI Nexus-9 reported stellar flares along the Orion arm.
-Commander Vance ordered energy shields to maximum frequency.
-"Calculations indicate a 98.4% survival probability," spoken the cybernetic intelligence.
-Deep space exploration requires sub-light propulsion and adaptive plasma containment.`,
+          science: `User: What is a star?
+AI: A star is a luminous sphere of plasma held together by its own gravity.
+User: How does the sun produce heat?
+AI: The Sun produces heat through nuclear fusion in its core, fusing hydrogen into helium.
+User: What is gravity?
+AI: Gravity is a fundamental force where objects with mass attract each other.`,
 
-          coder: `JavaScript is a versatile programming language that powers modern web applications.
-Functions, closures, arrays, and objects are fundamental data structures.
-Backpropagation updates neural weights using gradient descent and partial derivatives.
-HTML and CSS provide layout and visual styling for mobile responsive user interfaces.`
+          coder: `User: What is HTML?
+AI: HTML stands for HyperText Markup Language and structures web pages.
+User: What is JavaScript?
+AI: JavaScript is a programming language that makes websites interactive.
+User: What is backpropagation?
+AI: Backpropagation is an algorithm used to calculate gradients for neural network weights.`,
+
+          roleplay: `User: Greetings traveler!
+AI: Ah, greetings adventurer! Welcome to the ancient library of Eloria.
+User: What secret spells exist here?
+AI: Within these archives lie lost spells of elemental fire, storm weaving, and light projection.
+User: Teach me a spell!
+AI: Speak the words "Ignis Luminos" to summon a floating warm orb of light.`,
+
+          clear: ``
         };
 
-        txtArea.value = presets[presetKey] || presets.assistant;
-        const tokens = txtArea.value.split(/\s+/).filter(Boolean).length;
+        area.value = presets[preset] || '';
+        const tokens = area.value.split(/\s+/).filter(Boolean).length;
         document.getElementById('corpus-tokens').innerText = `Tokens: ~${tokens}`;
       }
 
@@ -1461,151 +1541,211 @@ HTML and CSS provide layout and visual styling for mobile responsive user interf
           document.getElementById('training-text').value = evt.target.result;
           const tokens = evt.target.result.split(/\s+/).filter(Boolean).length;
           document.getElementById('corpus-tokens').innerText = `Tokens: ~${tokens}`;
-          this.showToast(`Loaded ${file.name} successfully!`);
+          this.showToast(`Loaded ${file.name}`);
         };
         reader.readAsText(file);
       }
 
-      // ================= STATS DISPLAY & BRAIN INSPECTOR =================
+      // MODEL MODAL
+      openModelModal() {
+        document.getElementById('modal-model-name').value = '';
+        document.getElementById('model-modal').classList.remove('hidden');
+      }
+
+      closeModelModal() {
+        document.getElementById('model-modal').classList.add('hidden');
+      }
+
+      handleSaveNewModel() {
+        const name = document.getElementById('modal-model-name').value.trim();
+        const type = document.getElementById('modal-model-type').value;
+
+        if (!name) {
+          this.showToast("Please enter a model name!", "error");
+          return;
+        }
+
+        this.createNewModel(name, type);
+        this.closeModelModal();
+        this.showToast(`Created new model: ${name}`);
+      }
+
+      refreshModelSelect() {
+        const select = document.getElementById('active-model-select');
+        select.innerHTML = this.models.map(m => `
+          <option value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : 'N-Gram'})</option>
+        `).join('');
+
+        this.renderModelsHubCards();
+      }
+
+      renderModelsHubCards() {
+        const container = document.getElementById('models-card-list');
+        container.innerHTML = this.models.map(m => {
+          const isActive = m.id === this.activeModelId;
+          const vocab = m.engine.tokenizer ? m.engine.tokenizer.size() : 0;
+          return `
+            <div class="p-4 rounded-xl glass-panel border ${isActive ? 'border-brand-500 bg-brand-950/20' : 'border-slate-800'} space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-sm text-white block">${this.escapeHTML(m.name)}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${m.type === 'neural' ? 'Neural MLP Network' : 'Hybrid N-Gram Context'}</span>
+                </div>
+                ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 text-[10px] font-semibold border border-brand-500/40">Active</span>' : ''}
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400 border-t border-b border-slate-800/60 py-2">
+                <div>Vocab: <span class="text-slate-200">${vocab}</span></div>
+                <div>Epochs: <span class="text-slate-200">${m.engine.epochsTrained || (m.engine.isTrained ? 1 : 0)}</span></div>
+              </div>
+
+              <div class="flex items-center gap-2 pt-1">
+                ${!isActive ? `<button onclick="app.selectModel('${m.id}')" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium transition">Select</button>` : ''}
+                <button onclick="app.duplicateModel('${m.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition" title="Duplicate"><i class="fa-solid fa-copy"></i></button>
+                <button onclick="app.deleteModel('${m.id}')" class="px-2.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900 text-rose-300 text-xs transition ml-auto" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      selectModel(id) {
+        this.activeModelId = id;
+        this.refreshModelSelect();
+        this.updateStatsDisplay();
+        this.showToast(`Active model: ${this.getActiveModelObj().name}`);
+      }
+
       updateStatsDisplay() {
-        const model = this.getActiveModel();
+        const activeObj = this.getActiveModelObj();
+        const model = activeObj.engine;
+
+        document.getElementById('chat-model-title').innerText = `Chatting with: ${activeObj.name}`;
+        document.getElementById('side-model-name').innerText = activeObj.name;
+        document.getElementById('side-engine-badge').innerText = activeObj.type === 'neural' ? 'Neural MLP' : 'N-Gram';
+
         const vocabSize = model.tokenizer ? model.tokenizer.size() : 0;
         const paramsCount = model.getNumParameters ? model.getNumParameters() : 0;
-
-        document.getElementById('active-engine-badge').innerText = this.activeEngineType === 'neural' ? 'Neural Net' : 'N-Gram';
-        document.getElementById('engine-status-type').innerText = this.activeEngineType === 'neural' ? 'Neural MLP' : 'N-Gram Matcher';
-
-        document.getElementById('global-vocab-count').innerText = vocabSize;
-        document.getElementById('global-param-count').innerText = paramsCount.toLocaleString();
 
         document.getElementById('side-vocab').innerText = `${vocabSize} tokens`;
         document.getElementById('side-params').innerText = paramsCount.toLocaleString();
         document.getElementById('side-epochs').innerText = model.epochsTrained || (model.isTrained ? 1 : 0);
-
-        const lastLoss = (this.neuralLM.lossHistory.length > 0) ? this.neuralLM.lossHistory[this.neuralLM.lossHistory.length - 1].toFixed(4) : "N/A";
-        document.getElementById('side-loss').innerText = lastLoss;
-
-        // Brain Tab Specs
-        document.getElementById('brain-vocab-count').innerText = vocabSize;
-        document.getElementById('brain-param-count').innerText = paramsCount.toLocaleString();
-
-        const jsonStr = JSON.stringify(model.toJSON ? model.toJSON() : {});
-        const kbSize = (jsonStr.length / 1024).toFixed(1);
-        document.getElementById('brain-mem-size').innerText = `~${kbSize} KB`;
-
-        this.renderVocabChips();
       }
 
-      renderVocabChips(filter = '') {
-        const container = document.getElementById('vocab-chips-container');
-        const model = this.getActiveModel();
+      // IMPORT / EXPORT
+      exportActiveModelJSON() {
+        const activeObj = this.getActiveModelObj();
+        const payload = {
+          name: activeObj.name,
+          type: activeObj.type,
+          data: activeObj.engine.toJSON()
+        };
 
-        if (!model.tokenizer || model.tokenizer.size() <= 4) {
-          container.innerHTML = '<span class="text-slate-500 italic">No custom vocabulary built yet.</span>';
-          return;
-        }
-
-        const tokens = model.tokenizer.idToToken.slice(4); // Skip special tokens
-        const filtered = filter ? tokens.filter(t => t.includes(filter.toLowerCase())) : tokens;
-
-        container.innerHTML = filtered.map(t => `
-          <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">${this.escapeHTML(t)}</span>
-        `).join('');
-      }
-
-      // ================= IMPORT & EXPORT =================
-      exportBrainJSON() {
-        const model = this.getActiveModel();
-        const data = model.toJSON();
-        const jsonStr = JSON.stringify(data, null, 2);
-
+        const jsonStr = JSON.stringify(payload, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ai-brain-${this.activeEngineType}-${Date.now()}.json`;
+        a.download = `model-${activeObj.name.toLowerCase().replace(/\s+/g, '-')}.json`;
         a.click();
         URL.revokeObjectURL(url);
-
-        this.showToast("Model brain JSON downloaded!");
       }
 
-      importBrainJSON(e) {
+      exportAllModelsBundle() {
+        const bundle = this.models.map(m => ({
+          name: m.name,
+          type: m.type,
+          data: m.engine.toJSON()
+        }));
+
+        const jsonStr = JSON.stringify({ isBundle: true, models: bundle }, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `teachable-ai-bundle-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      importJSONFile(e) {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = (evt) => {
           try {
-            const data = JSON.parse(evt.target.result);
-            if (data.type === 'neural') {
-              this.activeEngineType = 'neural';
-              this.neuralLM.fromJSON(data);
-              document.querySelector('input[value="neural"]').checked = true;
-            } else if (data.type === 'ngram') {
-              this.activeEngineType = 'ngram';
-              this.ngramEngine.fromJSON(data);
-              document.querySelector('input[value="ngram"]').checked = true;
+            const parsed = JSON.parse(evt.target.result);
+            if (parsed.isBundle) {
+              parsed.models.forEach(item => {
+                const newM = this.createNewModel(item.name, item.type);
+                newM.engine.fromJSON(item.data);
+              });
+              this.showToast("Imported model bundle!");
+            } else if (parsed.type) {
+              const newM = this.createNewModel(parsed.name || 'Imported Model', parsed.type);
+              newM.engine.fromJSON(parsed.data || parsed);
+              this.showToast("Imported model!");
             }
-            this.saveToLocalStorage();
+            this.saveModelsToStorage();
             this.updateStatsDisplay();
-            this.showToast("Successfully loaded model brain from JSON!");
           } catch (err) {
-            this.showToast("Failed to parse brain JSON file", "error");
+            this.showToast("Invalid JSON file", "error");
           }
         };
         reader.readAsText(file);
       }
 
-      resetBrain() {
-        this.neuralLM = new TinyNeuralLM(2, 16, 32);
-        this.ngramEngine = new HybridNGramEngine();
-        localStorage.removeItem('teachable_ai_brain_neural');
-        localStorage.removeItem('teachable_ai_brain_ngram');
-        this.updateStatsDisplay();
-        this.showToast("Model brain reset to random weights.");
-      }
-
-      // ================= PERSISTENCE =================
-      saveToLocalStorage() {
+      // LOCAL STORAGE PERSISTENCE
+      saveModelsToStorage() {
         try {
-          localStorage.setItem('teachable_ai_brain_neural', JSON.stringify(this.neuralLM.toJSON()));
-          localStorage.setItem('teachable_ai_brain_ngram', JSON.stringify(this.ngramEngine.toJSON()));
+          const serializable = this.models.map(m => ({
+            id: m.id,
+            name: m.name,
+            type: m.type,
+            createdAt: m.createdAt,
+            engineData: m.engine.toJSON()
+          }));
+          localStorage.setItem('teachable_ai_models_v2', JSON.stringify(serializable));
         } catch (e) {
-          console.warn("LocalStorage full or disabled");
+          console.warn("LocalStorage quota exceeded");
         }
       }
 
-      tryLoadFromLocalStorage() {
+      loadModelsFromStorage() {
         try {
-          const neuralData = localStorage.getItem('teachable_ai_brain_neural');
-          if (neuralData) {
-            this.neuralLM.fromJSON(JSON.parse(neuralData));
-          }
-          const ngramData = localStorage.getItem('teachable_ai_brain_ngram');
-          if (ngramData) {
-            this.ngramEngine.fromJSON(JSON.parse(ngramData));
-          }
+          const raw = localStorage.getItem('teachable_ai_models_v2');
+          if (!raw) return;
+
+          const parsed = JSON.parse(raw);
+          this.models = parsed.map(m => {
+            const engine = m.type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();
+            if (m.engineData) engine.fromJSON(m.engineData);
+            return {
+              id: m.id,
+              name: m.name,
+              type: m.type,
+              createdAt: m.createdAt,
+              engine
+            };
+          });
         } catch (e) {
-          console.warn("Could not load from localStorage");
+          console.warn("Could not parse saved models");
         }
       }
 
       escapeHTML(str) {
         if (!str) return '';
-        return str.replace(/[&<>'"]/g, 
-          tag => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-          }[tag] || tag)
-        );
+        return str.replace(/[&<>'"]/g, tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag));
       }
     }
 
-    // Initialize App when DOM is ready
     window.addEventListener('DOMContentLoaded', () => {
       window.app = new AIApp();
     });

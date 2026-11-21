@@ -6,7 +6,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>Teachable AI Studio v5.0 - Persistent Learning & Memory Lab</title>
+  <title>Teachable AI Studio v6.0 - Adaptive Knowledge & Attention Lab</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -70,7 +70,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">v5.0 Pro</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">v6.0 Pro</span>
         </div>
         <p class="text-xs text-slate-400 hidden sm:block">Browser-based · CPU-first · local model training</p>
       </div>
@@ -261,11 +261,13 @@
           <!-- Input Textarea + Buttons -->
           <div class="flex items-end gap-2 relative">
             <textarea id="chat-input" rows="1" placeholder="Say hi, ask a question, or test your trained data..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none resize-none transition min-h-[42px] max-h-32"></textarea>
+            <button id="calculate-prompt-btn" title="Tokenize, retrieve, score and preview the answer" class="h-[42px] px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold shrink-0">Calculate</button>
             <button id="send-msg-btn" class="h-[42px] px-4 rounded-xl bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-medium flex items-center justify-center gap-2 transition shadow-lg shadow-brand-600/20 shrink-0">
               <i class="fa-solid fa-paper-plane text-xs"></i>
               <span class="hidden sm:inline text-xs">Send</span>
             </button>
           </div>
+          <div id="prompt-trace" class="hidden mt-3 p-3 rounded-xl bg-slate-950 border border-cyan-500/20 text-[11px] text-slate-300 space-y-2"></div>
         </div>
       </section>
 
@@ -521,7 +523,7 @@
 what is your name
 what is a neural network
 what is photosynthesis
-tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold text-slate-300 block mt-3">Expected answers (optional; one per prompt, same order)</label><textarea id="eval-gold" rows="5" placeholder="Optional reference answers, one per line. Leave blank for diagnostic-only tests." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500"></textarea><p class="text-[11px] text-slate-500">Scores use lexical overlap (precision / recall / F1), response time, repetition and empty-output checks. Treat them as diagnostics, not proof of factual correctness.</p><div class="flex flex-wrap gap-2"><button id="run-eval-btn" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">Run evaluation</button><button id="export-eval-btn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Export results JSON</button><button id="compare-eval-btn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Compare all models</button></div><p id="eval-summary" class="text-xs text-slate-400">No evaluation run yet.</p><div id="eval-results" class="space-y-2"></div></div>
+tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold text-slate-300 block mt-3">Expected answers (optional; one per prompt, same order)</label><textarea id="eval-gold" rows="5" placeholder="Optional reference answers, one per line. Leave blank for diagnostic-only tests." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-brand-500"></textarea><p class="text-[11px] text-slate-500">Scores include lexical gold-answer overlap, repeated-run consistency, instruction-shape heuristics, latency and regression comparison. Reasoning/factual/instruction scores are proxies—not semantic graders or proof of correctness.</p><div class="flex flex-wrap gap-2"><button id="run-eval-btn" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">Run evaluation</button><button id="export-eval-btn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Export results JSON</button><button id="compare-eval-btn" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Compare all models</button></div><p id="eval-summary" class="text-xs text-slate-400">No evaluation run yet.</p><div id="eval-results" class="space-y-2"></div></div>
       </section>
 
       <!-- ================= MEMORY INSPECTOR ================= -->
@@ -535,6 +537,23 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
             <div class="p-3 rounded-xl bg-slate-900 border border-slate-800"><div class="text-[10px] text-slate-500">Neural context</div><div id="memory-context-size" class="text-xl font-bold text-amber-300">0</div><div class="text-[10px] text-slate-500">tokens per prediction step</div></div>
           </div>
           <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2"><div class="flex justify-between gap-3"><span class="text-xs font-semibold text-slate-200">Context and memory are different</span><span id="memory-capacity-label" class="text-[10px] text-cyan-300 font-mono">Retrieval memory</span></div><p class="text-xs leading-relaxed text-slate-400">The neural context setting controls how many recent tokens the small local model uses for each next-token prediction. The retrieval memory below stores the full learned corpus and searches it for relevant answers. This is not a transformer LLM context window and does not guarantee that every stored fact is in the active prompt.</p><div class="flex flex-wrap gap-2"><button id="export-memory-btn" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs">Export learned corpus</button><button id="reindex-memory-btn" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs">Rebuild retrieval index</button></div></div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-bold text-white"><i class="fa-solid fa-sliders text-brand-400 mr-2"></i>Response preferences</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="text-[11px] text-slate-400">Tone<select id="pref-tone" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white"><option value="natural">Natural</option><option value="friendly">Friendly</option><option value="formal">Formal</option><option value="direct">Direct</option></select></label>
+              <label class="text-[11px] text-slate-400">Answer length<select id="pref-length" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white"><option value="balanced">Balanced</option><option value="concise">Concise</option><option value="detailed">Detailed</option></select></label>
+              <label class="text-[11px] text-slate-400 sm:col-span-2">Custom instruction<input id="pref-instruction" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white" placeholder="e.g. Use metric units; explain unfamiliar terms."></label>
+            </div>
+            <button id="save-preferences-btn" class="px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs text-white">Save preferences</button>
+            <p class="text-[10px] text-slate-500">Preferences steer response formatting; they do not add factual knowledge or change model weights.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-bold text-white"><i class="fa-solid fa-book text-amber-300 mr-2"></i>Individual knowledge facts & version history</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><input id="fact-title" class="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white" placeholder="Fact title / subject"><textarea id="fact-body" rows="2" class="bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white sm:col-span-2" placeholder="Write one fact or compact knowledge item…"></textarea></div>
+            <div class="flex flex-wrap gap-2"><button id="save-fact-btn" class="px-3 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs text-white">Add fact</button><button id="cancel-fact-edit-btn" class="px-3 py-2 rounded-lg bg-slate-800 text-xs text-slate-300">Cancel edit</button></div>
+            <div id="knowledge-facts-list" class="space-y-2"></div>
+            <p class="text-[10px] text-slate-500">Each fact keeps snapshots. Edit, delete, merge duplicates, and restore an earlier version. Facts are indexed into retrieval memory.</p>
+          </div>
           <div class="space-y-2"><label for="memory-search" class="text-xs font-semibold text-slate-300">Search what the model remembers</label><input id="memory-search" type="search" placeholder="Search learned Q&A and knowledge…" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500"><div id="memory-results" class="space-y-2"><p class="text-xs text-slate-500">Select a model or refresh to inspect its memory.</p></div></div>
           <div class="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-[11px] text-slate-400">Tip: Add new knowledge in Train Studio and use <b>Merge & train</b>. Existing corpus entries are retained; corrections to the same prompt are given priority without deleting unrelated learning.</div>
         </div>
@@ -545,7 +564,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         <div class="p-4 border-b border-slate-800 bg-slate-900/50">
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-400"></i>
-            How To Train & Tune Your Browser AI (v5.0)
+            How To Train & Tune Your Browser AI (v6.0)
           </h2>
           <p class="text-xs text-slate-400">Persistent learning, retrieval memory, context limits, and honest benchmarking</p>
         </div>
@@ -605,6 +624,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           <select id="modal-model-type" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl px-3 py-2 text-white focus:outline-none transition">
             <option value="neural">Turn-Anchored Neural MLP (Recommended)</option>
             <option value="ngram">Semantic TF-IDF + N-Gram Engine</option>
+            <option value="attention">Tiny Attention LM (Experimental)</option>
           </select>
         </div>
       </div>
@@ -1053,9 +1073,27 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         return dot / (Math.sqrt(normA) * Math.sqrt(normB) || 1);
       }
 
+      queryCandidates(prompt, limit = 5) {
+        const clean = prompt.toLowerCase().trim().replace(/[?!.]+$/g, '');
+        const qTerms = this.extractTerms(clean);
+        const candidates = [];
+        for (const qa of this.qaPairs) {
+          const pClean = qa.prompt.toLowerCase().trim().replace(/[?!.]+$/g, '');
+          const score = pClean === clean ? 1 : this.similarity(qTerms, qa.terms);
+          if (score > 0) candidates.push({ text: qa.response, prompt: qa.prompt, score, source: 'qa' });
+        }
+        for (const sent of this.sentences) {
+          const score = this.similarity(qTerms, sent.terms);
+          if (score > 0) candidates.push({ text: sent.text, prompt: '', score, source: 'paragraph' });
+        }
+        return candidates.sort((a,b)=>b.score-a.score).slice(0,limit);
+      }
+
       queryBestMatch(prompt) {
         const clean = prompt.toLowerCase().trim().replace(/[?!.]+$/g, '');
         const qTerms = this.extractTerms(clean);
+        const ranked = this.queryCandidates(prompt, 1)[0];
+        if (ranked && ((ranked.source === 'qa' && ranked.score >= 0.48) || (ranked.source === 'paragraph' && ranked.score >= 0.42))) return ranked;
 
         let bestQA = null;
         let bestQAScore = 0;
@@ -1405,6 +1443,43 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
     }
 
     /**
+     * Tiny causal self-attention language model. One attention head computes a
+     * context-weighted embedding before the existing feed-forward LM head.
+     * Attention is derived from the trained embeddings; this is intentionally
+     * described as transformer-style / experimental, not a full GPT stack.
+     */
+    class TinyAttentionLM extends TinyNeuralLM {
+      constructor(contextSize = 6, embDim = 20, hiddenDim = 48) { super(contextSize, embDim, hiddenDim); this.architecture = 'tiny-causal-attention-1head'; }
+      forward(contextIds) {
+        const V=this.tokenizer.size(), inDim=this.contextSize*this.embDim;
+        const ids=Array.from(contextIds || []).slice(-this.contextSize);
+        while(ids.length<this.contextSize) ids.unshift(this.tokenizer.vocab.get(this.tokenizer.PAD));
+        const xEmb=new Float32Array(inDim), queryStart=(this.contextSize-1)*this.embDim;
+        const scores=[];
+        for(let c=0;c<this.contextSize;c++){
+          const tid=(ids[c]!==undefined && ids[c]<V)?ids[c]:0; let dot=0;
+          for(let d=0;d<this.embDim;d++) dot += this.E[ids[this.contextSize-1]*this.embDim+d]*this.E[tid*this.embDim+d];
+          scores.push(dot/Math.sqrt(this.embDim));
+        }
+        const max=Math.max(...scores), weights=scores.map(v=>Math.exp(v-max)); const sum=weights.reduce((a,b)=>a+b,0)||1;
+        for(let d=0;d<this.embDim;d++){
+          let attended=0;
+          for(let c=0;c<this.contextSize;c++){const tid=(ids[c]!==undefined && ids[c]<V)?ids[c]:0;attended+=(weights[c]/sum)*this.E[tid*this.embDim+d];}
+          xEmb[queryStart+d]=attended;
+        }
+        // Preserve per-position features while injecting attended context at final slot.
+        for(let c=0;c<this.contextSize-1;c++){const tid=ids[c];for(let d=0;d<this.embDim;d++)xEmb[c*this.embDim+d]=this.E[tid*this.embDim+d];}
+        const hOut=new Float32Array(this.hiddenDim);
+        for(let j=0;j<this.hiddenDim;j++){let v=this.b1[j];for(let i=0;i<inDim;i++)v+=xEmb[i]*this.W1[i*this.hiddenDim+j];hOut[j]=Math.tanh(v);}
+        const logits=new Float32Array(V);let mx=-Infinity;
+        for(let k=0;k<V;k++){let v=this.b2[k];for(let j=0;j<this.hiddenDim;j++)v+=hOut[j]*this.W2[j*V+k];logits[k]=v;if(v>mx)mx=v;}
+        const probs=new Float32Array(V);let den=0;for(let k=0;k<V;k++){probs[k]=Math.exp(logits[k]-mx);den+=probs[k];}for(let k=0;k<V;k++)probs[k]/=den||1;
+        return {xEmb,hOut,probs,attention:weights.map(v=>v/sum)};
+      }
+      toJSON(){const d=super.toJSON();d.type='attention';d.architecture=this.architecture;return d;}
+    }
+
+    /**
      * SEMANTIC TF-IDF + N-GRAM ENGINE
      */
     class HybridNGramEngine {
@@ -1555,6 +1630,9 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         this.trainingWorker = null;
         this.lastEvaluation = [];
         this.lastMemoryQuery = '';
+        this.preferences = this.loadPreferences();
+        this.editingFactId = null;
+        this.previewCache = null;
 
         this.initUI();
         this.renderCorpusLibrary('all');
@@ -1612,7 +1690,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
       async quickTrainModel(modelObj, text, epochs = 60) {
         const cumulativeText = this.mergeCorpus(modelObj.engine.rawCorpus, text);
-        if (modelObj.type === 'neural') {
+        if (modelObj.type === 'neural' || modelObj.type === 'attention') {
           const dataset = modelObj.engine.prepareDataset(cumulativeText, true);
           for (let ep = 1; ep <= epochs; ep++) {
             const lr = 0.08 * (1 - 0.5 * (ep / epochs));
@@ -1646,7 +1724,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           id: 'model-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
           name: name || 'Custom AI',
           type: type || 'neural',
-          engine: type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine(),
+          engine: type === 'neural' ? new TinyNeuralLM() : (type === 'attention' ? new TinyAttentionLM() : new HybridNGramEngine()),
           createdAt: new Date().toLocaleDateString()
         };
         this.models.push(newModel);
@@ -1706,7 +1784,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           document.getElementById('training-text').value = active.engine.rawCorpus || '';
           this.updateCorpusStats();
           this.updateStatsDisplay();
-          this.refreshMemoryInspector();
+          this.refreshMemoryInspector(); this.renderKnowledgeFacts();
           this.showToast('Switched to: ' + active.name);
         });
 
@@ -1719,6 +1797,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
         // Chat
         document.getElementById('send-msg-btn').addEventListener('click', () => this.handleSendMessage());
+        document.getElementById('chat-input').addEventListener('input', () => { this.previewCache=null; });
         document.getElementById('chat-input').addEventListener('keydown', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -1783,6 +1862,67 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         document.getElementById('memory-search').addEventListener('input', () => this.refreshMemoryInspector());
         document.getElementById('reindex-memory-btn').addEventListener('click', () => this.rebuildActiveMemory());
         document.getElementById('export-memory-btn').addEventListener('click', () => this.exportMemoryCorpus());
+        document.getElementById('calculate-prompt-btn').addEventListener('click', () => this.calculatePrompt());
+        document.getElementById('save-preferences-btn').addEventListener('click', () => this.savePreferencesFromUI());
+        document.getElementById('save-fact-btn').addEventListener('click', () => this.saveKnowledgeFact());
+        document.getElementById('cancel-fact-edit-btn').addEventListener('click', () => this.resetFactEditor());
+        this.renderPreferences(); this.renderKnowledgeFacts();
+      }
+
+      loadPreferences() { try { return JSON.parse(localStorage.getItem('teachable_ai_preferences_v6') || '{}'); } catch(e) { return {}; } }
+      renderPreferences() {
+        const p=this.preferences||{};
+        const tone=document.getElementById('pref-tone'), length=document.getElementById('pref-length'), instruction=document.getElementById('pref-instruction');
+        if(tone) tone.value=p.tone||'natural'; if(length) length.value=p.length||'balanced'; if(instruction) instruction.value=p.instruction||'';
+      }
+      savePreferencesFromUI() {
+        this.preferences={tone:document.getElementById('pref-tone').value,length:document.getElementById('pref-length').value,instruction:document.getElementById('pref-instruction').value.trim()};
+        localStorage.setItem('teachable_ai_preferences_v6',JSON.stringify(this.preferences)); this.showToast('Response preferences saved on this device.');
+      }
+      applyPreferences(text) {
+        let out=String(text||''); const p=this.preferences||{};
+        if(p.length==='concise') out=out.split(/(?<=[.!?])\s+/).slice(0,2).join(' ');
+        if(p.tone==='formal') out=out.replace(/\b(yeah|yep|nope)\b/gi,'yes');
+        if(p.tone==='friendly' && out && !/[.!?]$/.test(out)) out+='!';
+        return out;
+      }
+      generatePreferred(engine, prompt, maxTokens, temperature, repetitionPenalty, topK) {
+        const p=this.preferences||{}, exact=engine.memory?.queryBestMatch(prompt);
+        if(exact) return this.applyPreferences(exact.text);
+        const conditioned=p.instruction ? `${prompt}\nPreference: ${p.instruction}` : prompt;
+        return this.applyPreferences(engine.generate(conditioned,maxTokens,temperature,repetitionPenalty,topK));
+      }
+      activeFacts() { const m=this.getActiveModelObj(); if(!m) return []; if(!Array.isArray(m.knowledgeItems))m.knowledgeItems=[]; return m.knowledgeItems; }
+      resetFactEditor() { this.editingFactId=null; document.getElementById('fact-title').value=''; document.getElementById('fact-body').value=''; document.getElementById('save-fact-btn').textContent='Add fact'; }
+      saveKnowledgeFact() {
+        const title=document.getElementById('fact-title').value.trim(), body=document.getElementById('fact-body').value.trim(); if(!title||!body){this.showToast('Enter a title and fact text.','error');return;}
+        const facts=this.activeFacts(), now=new Date().toISOString(); let item=facts.find(x=>x.id===this.editingFactId);
+        if(item){item.versions=item.versions||[{title:item.title,body:item.body,at:item.updatedAt||item.createdAt}];item.versions.push({title:item.title,body:item.body,at:now});item.title=title;item.body=body;item.updatedAt=now;}
+        else facts.push({id:'fact-'+Date.now()+'-'+Math.floor(Math.random()*9999),title,body,createdAt:now,updatedAt:now,versions:[]});
+        this.syncFactsToCorpus(); this.resetFactEditor(); this.renderKnowledgeFacts(); this.saveModelsToStorage(); this.refreshMemoryInspector(); this.showToast('Knowledge fact saved and indexed.');
+      }
+      syncFactsToCorpus() {
+        const m=this.getActiveModelObj(); if(!m)return; const facts=this.activeFacts();
+        const factText=facts.map(f=>`Knowledge: ${f.title}. ${f.body}`).join('\n\n');
+        const prior=(m.engine.rawCorpus||'').split(/\n\n/).filter(b=>!/^Knowledge: /i.test(b.trim())).join('\n\n');
+        m.engine.rawCorpus=[prior,factText].filter(Boolean).join('\n\n'); if(m.engine.memory)m.engine.memory.indexText(m.engine.rawCorpus);
+      }
+      renderKnowledgeFacts() {
+        const box=document.getElementById('knowledge-facts-list'); if(!box)return; const facts=this.activeFacts();
+        box.innerHTML=facts.length?facts.map(f=>`<article class="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-2"><div class="flex justify-between gap-2"><div class="text-xs font-semibold text-white">${this.escapeHTML(f.title)}</div><span class="text-[10px] text-slate-500">${(f.versions||[]).length+1} version(s)</span></div><p class="text-[11px] text-slate-400 whitespace-pre-wrap">${this.escapeHTML(f.body)}</p><div class="flex flex-wrap gap-2"><button data-fact-edit="${f.id}" class="text-[10px] px-2 py-1 rounded bg-slate-800 text-cyan-300">Edit</button><button data-fact-versions="${f.id}" class="text-[10px] px-2 py-1 rounded bg-slate-800 text-amber-300">Versions / restore</button><button data-fact-merge="${f.id}" class="text-[10px] px-2 py-1 rounded bg-slate-800 text-violet-300">Merge duplicates</button><button data-fact-delete="${f.id}" class="text-[10px] px-2 py-1 rounded bg-rose-950 text-rose-300">Delete</button></div><div id="fact-history-${f.id}" class="hidden text-[10px] text-slate-400 space-y-1"></div></article>`).join(''):'<p class="text-[11px] text-slate-500">No individual facts yet. Add facts above to manage them separately from raw training examples.</p>';
+        box.querySelectorAll('[data-fact-edit]').forEach(b=>b.onclick=()=>{const f=facts.find(x=>x.id===b.dataset.factEdit);if(!f)return;this.editingFactId=f.id;document.getElementById('fact-title').value=f.title;document.getElementById('fact-body').value=f.body;document.getElementById('save-fact-btn').textContent='Save revision';});
+        box.querySelectorAll('[data-fact-delete]').forEach(b=>b.onclick=()=>{if(!confirm('Delete this fact and all its versions?'))return;const i=facts.findIndex(x=>x.id===b.dataset.factDelete);if(i>=0)facts.splice(i,1);this.syncFactsToCorpus();this.renderKnowledgeFacts();this.saveModelsToStorage();this.refreshMemoryInspector();});
+        box.querySelectorAll('[data-fact-versions]').forEach(b=>b.onclick=()=>{const f=facts.find(x=>x.id===b.dataset.factVersions),h=document.getElementById('fact-history-'+f.id);const versions=[...(f.versions||[]),{title:f.title,body:f.body,at:f.updatedAt||f.createdAt,current:true}];h.classList.toggle('hidden');h.innerHTML=versions.map((v,i)=>`<div class="flex justify-between gap-2 border-t border-slate-800 pt-1"><span>${v.current?'Current':new Date(v.at).toLocaleString()} · ${this.escapeHTML(v.title)}</span>${v.current?'':`<button data-restore-index="${i}" class="text-cyan-300">Restore</button>`}</div>`).join('');h.querySelectorAll('[data-restore-index]').forEach(r=>r.onclick=()=>{const v=versions[Number(r.dataset.restoreIndex)];f.versions.push({title:f.title,body:f.body,at:new Date().toISOString()});f.title=v.title;f.body=v.body;f.updatedAt=new Date().toISOString();this.syncFactsToCorpus();this.renderKnowledgeFacts();this.saveModelsToStorage();this.refreshMemoryInspector();});});
+        box.querySelectorAll('[data-fact-merge]').forEach(b=>b.onclick=()=>{const f=facts.find(x=>x.id===b.dataset.factMerge);const dup=facts.filter(x=>x.id!==f.id&&x.title.toLowerCase()===f.title.toLowerCase());if(!dup.length){this.showToast('No exact-title duplicates to merge.');return;}dup.forEach(d=>{f.versions.push({title:d.title,body:d.body,at:d.updatedAt||d.createdAt,merged:true});f.body+='\n'+d.body;});for(let i=facts.length-1;i>=0;i--)if(dup.includes(facts[i]))facts.splice(i,1);this.syncFactsToCorpus();this.renderKnowledgeFacts();this.saveModelsToStorage();this.refreshMemoryInspector();this.showToast('Merged '+dup.length+' duplicate fact(s).');});
+      }
+      calculatePrompt() {
+        const prompt=document.getElementById('chat-input').value.trim(); if(!prompt)return;
+        const m=this.getActiveModelObj(), e=m.engine, tokens=e.tokenizer?.tokenize(prompt)||[], ids=e.tokenizer?.encode(tokens)||[], candidates=e.memory?.queryCandidates(prompt,5)||[], hit=e.memory?.queryBestMatch(prompt)||null;
+        const response=this.generatePreferred(e,prompt,parseInt(document.getElementById('chat-max-tokens').value),parseFloat(document.getElementById('chat-temp').value),parseFloat(document.getElementById('chat-rep-penalty').value),parseInt(document.getElementById('chat-topk').value));
+        this.previewCache={prompt,response};
+        const vocab=e.tokenizer?.vocab; const known=tokens.filter(t=>vocab?.has(t)).length;
+        const trace=document.getElementById('prompt-trace'); trace.classList.remove('hidden');
+        trace.innerHTML=`<div class="font-semibold text-cyan-300">Prompt computation · ${this.escapeHTML(m.name)}</div><div><b>1. Tokenize:</b> ${tokens.length} tokens · ${known} known vocabulary tokens · ${tokens.length-known} unknown (fallback/subword handling applies).</div><div class="break-words"><b>2. Token IDs:</b> ${this.escapeHTML(ids.join(', ')||'—')}</div><div><b>3. Retrieval candidates:</b> ${candidates.length?candidates.map((c,i)=>`<div class="ml-2 mt-1">${i+1}. [${c.source}] ${Math.round(c.score*100)}% · ${this.escapeHTML(c.prompt||c.text.slice(0,90))}</div>`).join(''):'No candidate passed retrieval ranking.'}</div><div><b>4. Selection:</b> ${hit?`Retrieved ${hit.source} answer (similarity ${hit.score.toFixed(3)}).`:'No retrieval match; next-token model sampling used.'}</div><div class="border-t border-slate-800 pt-2"><b>5. Predicted output:</b><p class="mt-1 text-emerald-300 whitespace-pre-wrap">${this.escapeHTML(response||'(empty)')}</p></div><p class="text-[10px] text-slate-500">Token IDs and retrieval scores are computed from the active local model. Generated text is a sampled prediction, not a guaranteed correct answer.</p>`;
       }
 
       updateCorpusStats() {
@@ -1814,7 +1954,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const precision = out.length ? overlap/out.length : 0; const recall = gold.length ? overlap/gold.length : 0;
         const f1 = precision+recall ? 2*precision*recall/(precision+recall) : 0;
         const repeated = out.length ? 1-new Set(out).size/out.length : 0;
-        return {latencyMs, precision, recall, f1, repeated, empty:!String(response||'').trim(), exact:!!gold.length && String(response||'').trim().toLowerCase()===String(expected||'').trim().toLowerCase()};
+        const responseWords=new Set(out), expectedWords=new Set(gold); const instructionFollowing=!!String(response||'').trim() && (!/\b(only|exactly|list|three|two|one|json)\b/i.test(String(expected||'')) || String(response||'').trim().length>0); const factualRecall=recall; const consistency=1-repeated; const reasoning=gold.length?f1:(out.length?Math.min(1,out.length/12):0); return {latencyMs, precision, recall, f1, reasoning, factualRecall, instructionFollowing, consistency, repeated, empty:!String(response||'').trim(), exact:!!gold.length && String(response||'').trim().toLowerCase()===String(expected||'').trim().toLowerCase()};
       }
 
       runEvaluation() {
@@ -1823,11 +1963,30 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const prompts=document.getElementById('eval-prompts').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,100);
         const gold=document.getElementById('eval-gold').value.split(/\r?\n/).map(x=>x.trim());
         if(!active || !prompts.length){this.showToast('Add at least one test prompt.','error');return;}
-        const results=prompts.map((prompt,i)=>{const t=performance.now();const response=active.engine.generate(prompt,80,0.25,1.3,8);const latencyMs=performance.now()-t;return {prompt,response,expected:gold[i]||'',metrics:this.scoreBenchmark(response,gold[i]||'',latencyMs),model:active.name,modelType:active.type,createdAt:new Date().toISOString()};});
+        let baseline={}; try{baseline=JSON.parse(localStorage.getItem('teachable_ai_eval_baseline_v6')||'{}');}catch(e){}
+        const prior=baseline[active.id]||{};
+        const overlap=(a,b)=>{const A=new Set((String(a||'').toLowerCase().match(/[a-z0-9]+/g)||[])),B=new Set((String(b||'').toLowerCase().match(/[a-z0-9]+/g)||[]));if(!A.size&&!B.size)return 1;let n=0;A.forEach(x=>{if(B.has(x))n++;});return n/Math.max(1,new Set([...A,...B]).size);};
+        const results=prompts.map((prompt,i)=>{
+          const t=performance.now(); const response=this.generatePreferred(active.engine,prompt,80,0.25,1.3,8); const latencyMs=performance.now()-t;
+          const second=this.generatePreferred(active.engine,prompt,80,0.25,1.3,8);
+          const metrics=this.scoreBenchmark(response,gold[i]||'',latencyMs); metrics.consistency=overlap(response,second);
+          const words=String(response||'').trim().split(/\s+/).filter(Boolean);
+          const exactWords=prompt.match(/exactly\s+(\d+)\s+words?/i), listCount=prompt.match(/(?:list|give)\s+(\d+)\s+(?:items|points|examples)/i);
+          if(exactWords) metrics.instructionFollowing=words.length===Number(exactWords[1]);
+          else if(listCount) metrics.instructionFollowing=(response.match(/(?:^|\n)\s*(?:[-*•]|\d+[.)])/g)||[]).length===Number(listCount[1]);
+          else metrics.instructionFollowing=!!response.trim();
+          const key=prompt.toLowerCase().replace(/\s+/g,' '), previous=prior[key];
+          metrics.regression=previous?overlap(response,previous):null;
+          metrics.regressionStatus=previous?(metrics.regression<0.35?'possible-regression':'stable'):'new-baseline';
+          const p=prompt.toLowerCase(); metrics.testType=/why|explain|reason|compare|solve|therefore|because/.test(p)?'Reasoning':(/who|what|when|where|define|name|capital|fact/.test(p)?'Factual recall':(/exactly|list|format|only|json|bullet|word/.test(p)?'Instruction following':'General / regression'));
+          return {prompt,response,repeatResponse:second,expected:gold[i]||'',metrics,model:active.name,modelType:active.type,testType:metrics.testType,createdAt:new Date().toISOString()};
+        });
+        baseline[active.id]=Object.fromEntries(results.map(r=>[r.prompt.toLowerCase().replace(/\s+/g,' '),r.response]));
+        try{localStorage.setItem('teachable_ai_eval_baseline_v6',JSON.stringify(baseline));}catch(e){}
         this.lastEvaluation=results;
         const avg=key=>results.reduce((n,r)=>n+(r.metrics[key]||0),0)/results.length;
-        document.getElementById('eval-results').innerHTML=results.map((r,i)=>`<article class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2"><div class="text-[11px] text-brand-300 font-semibold">${i+1}. ${this.escapeHTML(r.prompt)}</div><p class="text-xs text-slate-200 whitespace-pre-wrap">${this.escapeHTML(r.response||'(empty response)')}</p>${r.expected?`<p class="text-[11px] text-slate-500">Expected: ${this.escapeHTML(r.expected)}</p>`:''}<div class="flex flex-wrap gap-3 text-[10px] font-mono text-slate-400"><span>F1 ${r.expected?r.metrics.f1.toFixed(2):'—'}</span><span>Latency ${r.metrics.latencyMs.toFixed(1)} ms</span><span>Repeat ${(r.metrics.repeated*100).toFixed(0)}%</span><span>${r.metrics.empty?'Empty':'Non-empty'}</span></div></article>`).join('');
-        document.getElementById('eval-summary').textContent=`${results.length} prompts · avg latency ${avg('latencyMs').toFixed(1)} ms · empty ${results.filter(r=>r.metrics.empty).length} · avg lexical F1 ${gold.some(Boolean)?avg('f1').toFixed(3):'not scored (add expected answers)'}. Lexical overlap is not factual verification.`;
+        document.getElementById('eval-results').innerHTML=results.map((r,i)=>`<article class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2"><div class="text-[11px] text-brand-300 font-semibold">${i+1}. ${this.escapeHTML(r.prompt)} <span class="text-slate-500">· ${r.testType}</span></div><p class="text-xs text-slate-200 whitespace-pre-wrap">${this.escapeHTML(r.response||'(empty response)')}</p>${r.expected?`<p class="text-[11px] text-slate-500">Expected: ${this.escapeHTML(r.expected)}</p>`:''}<div class="flex flex-wrap gap-3 text-[10px] font-mono text-slate-400"><span>Gold F1 ${r.expected?r.metrics.f1.toFixed(2):'—'}</span><span>Reasoning proxy ${r.expected?r.metrics.reasoning.toFixed(2):'—'}</span><span>Instruction ${r.metrics.instructionFollowing?'pass':'check'}</span><span>Repeat consistency ${(r.metrics.consistency*100).toFixed(0)}%</span><span>Regression ${r.metrics.regression===null?'baseline':r.metrics.regressionStatus+' '+r.metrics.regression.toFixed(2)}</span><span>${r.metrics.latencyMs.toFixed(1)} ms</span></div></article>`).join('');
+        document.getElementById('eval-summary').textContent=`${results.length} prompts · avg latency ${avg('latencyMs').toFixed(1)} ms · repeat consistency ${(avg('consistency')*100).toFixed(0)}% · instruction pass ${(avg('instructionFollowing')*100).toFixed(0)}% · possible regressions ${results.filter(r=>r.metrics.regressionStatus==='possible-regression').length}. Gold-answer reasoning/factual metrics are lexical proxies; use reviewed expected answers for meaningful tests.`;
       }
 
       compareEvaluation() {
@@ -1853,8 +2012,8 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
       exportEvaluation() {
         if(!this.lastEvaluation.length){this.showToast('Run an evaluation first.','error');return;}
-        const blob=new Blob([JSON.stringify({appVersion:'5.0',results:this.lastEvaluation},null,2)],{type:'application/json'});
-        const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='teachable-ai-evaluation.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+        const blob=new Blob([JSON.stringify({appVersion:'6.0',results:this.lastEvaluation},null,2)],{type:'application/json'});
+        const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='teachable-ai-evaluation-v6.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
       }
 
       autoFormatCorpus() {
@@ -1991,7 +2150,8 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const typingBubble = this.appendTypingIndicator();
 
         setTimeout(() => {
-          const response = model.generate(prompt, maxTokens, temp, repPenalty, topK);
+          const response = (this.previewCache && this.previewCache.prompt === prompt) ? this.previewCache.response : this.generatePreferred(model,prompt,maxTokens,temp,repPenalty,topK);
+          this.previewCache = null;
           typingBubble.remove();
           this.appendChatMessage('ai', response, prompt);
 
@@ -2217,7 +2377,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
         if (activeObj.type !== selectedEngineType) {
           activeObj.type = selectedEngineType;
-          activeObj.engine = selectedEngineType === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();
+          activeObj.engine = selectedEngineType === 'neural' ? new TinyNeuralLM() : (selectedEngineType === 'attention' ? new TinyAttentionLM() : new HybridNGramEngine());
         }
 
         const epochs = parseInt(document.getElementById('param-epochs').value);
@@ -2226,7 +2386,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const hiddenDim = parseInt(document.getElementById('param-hidden').value);
         const augment = document.getElementById('param-augment').checked;
 
-        if (activeObj.type === 'neural') {
+        if (activeObj.type === 'neural' || activeObj.type === 'attention') {
           const profile = document.getElementById('training-profile').value || 'balanced';
           const profileLimits = {
             phone: { vocabLimit: 240, maxExamples: 450, hiddenCap: 24, epochCap: 16, profileLabel: 'Phone / low-memory CPU' },
@@ -2249,7 +2409,8 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           const lossPoints = [];
           let usedWorker = false;
           try {
-            usedWorker = await this.runWorkerTraining(activeObj, text, config, lossPoints);
+            // Use the in-page trainer so replay + validation early stopping are applied consistently.
+            usedWorker = false;
           } catch (err) {
             console.error('Worker training failed:', err);
             this.showToast('Worker training failed; switching to safe CPU fallback.', 'error');
@@ -2266,25 +2427,35 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
               dataset.X = dataset.X.filter((_, i) => i % stride === 0).slice(0, cap);
               dataset.Y = dataset.Y.filter((_, i) => i % stride === 0).slice(0, cap);
             }
-            let completed = 0;
+            let completed = 0, bestVal = Infinity, patience = 0, bestWeights = null;
+            // Every epoch replays examples from the entire merged corpus, preserving older examples.
+            let valIdx=dataset.X.map((_,i)=>i).filter(i=>i%10===0), trainIdx=dataset.X.map((_,i)=>i).filter(i=>i%10!==0); if(dataset.X.length<2)valIdx=[]; if(trainIdx.length===0)trainIdx=dataset.X.map((_,i)=>i);
+            const snapshot=()=>({E:activeObj.engine.E.slice(),W1:activeObj.engine.W1.slice(),b1:activeObj.engine.b1.slice(),W2:activeObj.engine.W2.slice(),b2:activeObj.engine.b2.slice()});
+            const validationLoss=()=>{if(!valIdx.length)return lossForTrainingPreview();let loss=0;for(const i of valIdx){const p=activeObj.engine.forward(dataset.X[i]).probs;loss-=Math.log(Math.max(1e-10,p[dataset.Y[i]]));}return loss/valIdx.length;}; const lossForTrainingPreview=()=>{let loss=0;for(const i of trainIdx.slice(0,Math.min(32,trainIdx.length))){const p=activeObj.engine.forward(dataset.X[i]).probs;loss-=Math.log(Math.max(1e-10,p[dataset.Y[i]]));}return loss/Math.max(1,Math.min(32,trainIdx.length));};
             for (let epoch = 1; epoch <= config.epochs; epoch++) {
               if (this.stopRequested) break;
               let loss = 0;
               const lr = config.learningRate * (0.2 + 0.8 * 0.5 * (1 + Math.cos(Math.PI * epoch / config.epochs)));
-              for (let i = 0; i < dataset.X.length; i++) {
+              // Deterministic shuffle makes replay less order-sensitive while retaining every prior sample.
+              for (let n=0;n<trainIdx.length;n++) {
                 if (this.stopRequested) break;
+                const i=trainIdx[(n*7919+epoch*104729)%trainIdx.length];
                 loss += activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
-                if (i > 0 && i % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+                if (n > 0 && n % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
               }
               if (this.stopRequested) break;
-              const avg = loss / Math.max(1, dataset.X.length);
+              const avg = loss / Math.max(1, trainIdx.length), val=validationLoss();
               lossPoints.push(avg); activeObj.engine.lossHistory.push(avg); completed++;
               document.getElementById('train-progress-bar').style.width = (epoch / config.epochs * 100) + '%';
               document.getElementById('current-loss-val').innerText = avg.toFixed(4);
-              document.getElementById('train-status-text').innerText = `${config.profileLabel} · epoch ${epoch}/${config.epochs}`;
+              document.getElementById('validation-loss-val').innerText = val.toFixed(4);
+              document.getElementById('train-status-text').innerText = `${config.profileLabel} · epoch ${epoch}/${config.epochs} · replay + validation`;
               this.drawLossChart(lossPoints);
+              if(val < bestVal - 0.0005){bestVal=val;patience=0;bestWeights=snapshot();}else patience++;
+              if(patience>=5){document.getElementById('train-status-text').innerText += ' · early stop';break;}
               await new Promise(resolve => setTimeout(resolve, 0));
             }
+            if(bestWeights && !this.stopRequested){Object.assign(activeObj.engine,bestWeights);}
             activeObj.engine.epochsTrained += completed;
             activeObj.engine.isTrained = true;
             activeObj.engine.rawCorpus = text;
@@ -2368,7 +2539,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       refreshModelSelect() {
         const select = document.getElementById('active-model-select');
         select.innerHTML = this.models.map(m => `
-          <option value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : 'TF-IDF'})</option>
+          <option value="${m.id}" ${m.id === this.activeModelId ? 'selected' : ''}>${this.escapeHTML(m.name)} (${m.type === 'neural' ? 'MLP' : (m.type === 'attention' ? 'Attention' : 'TF-IDF')})</option>
         `).join('');
         this.renderModelsHubCards();
       }
@@ -2384,7 +2555,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
               <div class="flex items-center justify-between">
                 <div>
                   <span class="font-bold text-sm text-white block">${this.escapeHTML(m.name)}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">${m.type === 'neural' ? 'Turn-Anchored Neural MLP' : 'Semantic TF-IDF + N-Gram'}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${m.type === 'neural' ? 'Turn-Anchored Neural MLP' : (m.type === 'attention' ? 'Tiny Causal Attention LM' : 'Semantic TF-IDF + N-Gram')}</span>
                 </div>
                 ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 text-[10px] font-semibold border border-brand-500/40">Active</span>' : ''}
               </div>
@@ -2422,7 +2593,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
 
         document.getElementById('chat-model-title').innerText = 'Chatting with: ' + activeObj.name;
         document.getElementById('side-model-name').innerText = activeObj.name;
-        document.getElementById('side-engine-badge').innerText = activeObj.type === 'neural' ? 'Neural MLP' : 'TF-IDF';
+        document.getElementById('side-engine-badge').innerText = activeObj.type === 'neural' ? 'Neural MLP' : (activeObj.type === 'attention' ? 'Tiny Attention LM' : 'TF-IDF');
 
         const vocabSize = model.tokenizer ? model.tokenizer.size() : 0;
         const paramsCount = model.getNumParameters ? model.getNumParameters() : 0;
@@ -2451,7 +2622,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const set = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
         set('memory-qa-count', qa.length.toLocaleString()); set('memory-chunk-count', chunks.length.toLocaleString());
         set('memory-char-count', corpus.length.toLocaleString()); set('memory-context-size', context ? context + ' tokens' : 'N/A');
-        set('memory-capacity-label', active.name + ' · retrieval index');
+        set('memory-capacity-label', active.name + ' · retrieval index'); this.renderKnowledgeFacts();
         const box=document.getElementById('memory-results');
         if (box) box.innerHTML = matches.length ? matches.map((x,i)=>`<article class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1"><div class="flex justify-between gap-2"><span class="text-[10px] text-cyan-300 font-mono">${x.kind}</span><span class="text-[10px] text-slate-600">#${i+1}</span></div><p class="text-xs font-semibold text-slate-200 whitespace-pre-wrap">${this.escapeHTML(x.title)}</p>${x.body?`<p class="text-xs text-slate-400 whitespace-pre-wrap">${this.escapeHTML(x.body)}</p>`:''}</article>`).join('') : '<p class="text-xs text-slate-500">No matching memory entries.</p>';
       }
@@ -2474,7 +2645,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       exportActiveModelJSON() {
         const activeObj = this.getActiveModelObj();
         const payload = {
-          formatVersion: 2, appVersion: '5.0', architecture: activeObj.type === 'neural' ? 'tiny-mlp-next-token' : 'tfidf-ngram-retrieval',
+          formatVersion: 2, appVersion: '6.0', architecture: activeObj.type === 'neural' ? 'tiny-mlp-next-token' : (activeObj.type === 'attention' ? 'tiny-causal-self-attention-plus-ffn' : 'tfidf-ngram-retrieval'),
           exportedAt: new Date().toISOString(), trainedOnDevice: true,
           name: activeObj.name, type: activeObj.type, data: activeObj.engine.toJSON()
         };
@@ -2493,7 +2664,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
           type: m.type,
           data: m.engine.toJSON()
         }));
-        const blob = new Blob([JSON.stringify({ isBundle: true, formatVersion: 2, appVersion: '5.0', exportedAt: new Date().toISOString(), trainedOnDevice: true, models: bundle }, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify({ isBundle: true, formatVersion: 2, appVersion: '6.0', exportedAt: new Date().toISOString(), trainedOnDevice: true, models: bundle }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -2535,7 +2706,7 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       openStorageDB() {
         return new Promise((resolve, reject) => {
           if (!('indexedDB' in window)) { reject(new Error('IndexedDB unavailable')); return; }
-          const request = indexedDB.open('teachable-ai-studio-v5', 1);
+          const request = indexedDB.open('teachable-ai-studio-v6', 1);
           request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('state')) request.result.createObjectStore('state'); };
           request.onsuccess = () => resolve(request.result);
           request.onerror = () => reject(request.error || new Error('Could not open model database'));
@@ -2543,10 +2714,10 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
       }
 
       saveModelsToStorage() {
-        const serializable = this.models.map(m => ({ id:m.id, name:m.name, type:m.type, createdAt:m.createdAt, engineData:m.engine.toJSON() }));
+        const serializable = this.models.map(m => ({ id:m.id, name:m.name, type:m.type, createdAt:m.createdAt, knowledgeItems:m.knowledgeItems||[], engineData:m.engine.toJSON() }));
         const payload = JSON.stringify(serializable);
         let localSaved = false;
-        try { localStorage.setItem('teachable_ai_models_v5', payload); localSaved = true; }
+        try { localStorage.setItem('teachable_ai_models_v6', payload); localSaved = true; }
         catch (e) { console.warn('localStorage quota reached; saving to IndexedDB instead.', e); }
         this.openStorageDB().then(db => new Promise((resolve,reject) => {
           const tx=db.transaction('state','readwrite');
@@ -2563,13 +2734,13 @@ tell me a joke</textarea><label for="eval-gold" class="text-xs font-semibold tex
         const restore = data => {
           if (!Array.isArray(data)) return false;
           this.models = data.map(m => {
-            const engine = m.type === 'neural' ? new TinyNeuralLM() : new HybridNGramEngine();
+            const engine = m.type === 'neural' ? new TinyNeuralLM() : (m.type === 'attention' ? new TinyAttentionLM() : new HybridNGramEngine());
             if (m.engineData) engine.fromJSON(m.engineData);
-            return { id:m.id || ('model-' + Date.now()), name:m.name || 'Imported Model', type:m.type || 'neural', createdAt:m.createdAt || new Date().toLocaleDateString(), engine };
+            return { id:m.id || ('model-' + Date.now()), name:m.name || 'Imported Model', type:m.type || 'neural', createdAt:m.createdAt || new Date().toLocaleDateString(), knowledgeItems:m.knowledgeItems||[], engine };
           });
           return true;
         };
-        try { const raw=(localStorage.getItem('teachable_ai_models_v5') || localStorage.getItem('teachable_ai_models_v3')); if(raw) restore(JSON.parse(raw)); }
+        try { const raw=(localStorage.getItem('teachable_ai_models_v6') || localStorage.getItem('teachable_ai_models_v5')); if(raw) restore(JSON.parse(raw)); }
         catch(e) { console.warn('Could not parse localStorage models:',e); }
         try {
           const db=await this.openStorageDB();

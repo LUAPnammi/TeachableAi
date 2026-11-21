@@ -175,10 +175,10 @@
             </div>
 
             <!-- Live Learn Toggle -->
-            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800" title="Automatically learns from your conversation turns">
+            <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800" title="Adds conversation turns to retrieval memory; does not update neural weights">
               <input type="checkbox" id="live-learn-toggle" class="sr-only peer" checked>
               <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-500 relative"></div>
-              <span>Live Learn</span>
+              <span>Live Memory</span>
             </label>
 
             <!-- Export Chat -->
@@ -1462,7 +1462,11 @@
           const defaultCorpus = CORPUS_LIBRARY[0].text + '\n\n' + CORPUS_LIBRARY[1].text;
           document.getElementById('training-text').value = defaultCorpus;
           this.updateCorpusStats();
-          this.quickTrainModel(starter, defaultCorpus, 60);
+          // Train in small asynchronous batches so startup never locks the UI.
+          this.quickTrainModel(starter, defaultCorpus, 60).catch(err => {
+            console.error('Starter training failed:', err);
+            this.showToast('Starter model training failed. You can retrain it in Train Studio.', 'error');
+          });
         } else {
           this.activeModelId = this.models[0].id;
           const active = this.getActiveModelObj();
@@ -1476,7 +1480,7 @@
         this.updateStatsDisplay();
       }
 
-      quickTrainModel(modelObj, text, epochs = 60) {
+      async quickTrainModel(modelObj, text, epochs = 60) {
         if (modelObj.type === 'neural') {
           const dataset = modelObj.engine.prepareDataset(text, true);
           for (let ep = 1; ep <= epochs; ep++) {
@@ -1484,15 +1488,20 @@
             let epochLoss = 0;
             for (let i = 0; i < dataset.X.length; i++) {
               epochLoss += modelObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
+              if (i > 0 && i % 32 === 0) await new Promise(resolve => setTimeout(resolve, 0));
             }
             modelObj.engine.lossHistory.push(epochLoss / Math.max(1, dataset.X.length));
+            // Yield between epochs to let clicks, paint, and browser input run.
+            await new Promise(resolve => setTimeout(resolve, 0));
           }
           modelObj.engine.epochsTrained += epochs;
           modelObj.engine.isTrained = true;
         } else {
-          modelObj.engine.train(text);
+          // N-gram indexing is synchronous; cap pathological input sizes.
+          modelObj.engine.train(text.slice(0, 500000));
         }
         this.saveModelsToStorage();
+        this.updateStatsDisplay();
       }
 
       getActiveModelObj() {
@@ -1608,7 +1617,15 @@
           this.updateCorpusStats();
         });
 
-        document.getElementById('start-train-btn').addEventListener('click', () => this.startTraining());
+        document.getElementById('start-train-btn').addEventListener('click', () => this.startTraining().catch(err => {
+          console.error('Training error:', err);
+          this.isTraining = false;
+          document.getElementById('start-train-btn').disabled = false;
+          document.getElementById('stop-train-btn').disabled = true;
+          document.getElementById('train-status-dot').className = 'w-2 h-2 rounded-full bg-rose-500';
+          document.getElementById('train-status-text').innerText = 'Training failed';
+          this.showToast('Training failed: ' + (err.message || 'unexpected error'), 'error');
+        }));
         document.getElementById('stop-train-btn').addEventListener('click', () => { this.stopRequested = true; });
         document.getElementById('file-upload').addEventListener('change', (e) => this.handleFileUpload(e));
 
@@ -1722,6 +1739,7 @@
         });
 
         const activeSec = document.getElementById(targetId);
+        if (!activeSec) return;
         activeSec.classList.remove('hidden');
         activeSec.classList.add('flex');
       }
@@ -1773,7 +1791,7 @@
           this.appendChatMessage('ai', response, prompt);
 
           if (document.getElementById('live-learn-toggle').checked && prompt.split(/\s+/).length >= 3) {
-            const updatedCorpus = ((model.rawCorpus || '') + '\nuser: ' + prompt + '\nai: ' + response).trim();
+            const updatedCorpus = (((model.rawCorpus || '') + '\nuser: ' + prompt + '\nai: ' + response).trim()).slice(-100000);
             model.rawCorpus = updatedCorpus;
             if (model.memory) model.memory.indexText(updatedCorpus);
           }
@@ -1850,7 +1868,7 @@
         a.href = url;
         a.download = 'chat-transcript-' + Date.now() + '.txt';
         a.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
       // TEACH MODAL
@@ -1864,7 +1882,7 @@
         document.getElementById('teach-modal').classList.add('hidden');
       }
 
-      submitCorrection() {
+      async submitCorrection() {
         const prompt = document.getElementById('teach-prompt-display').innerText;
         const idealResponse = document.getElementById('teach-ideal-input').value.trim();
         if (!idealResponse) return;
@@ -1872,25 +1890,34 @@
         const activeObj = this.getActiveModelObj();
         const existing = activeObj.engine.rawCorpus || document.getElementById('training-text').value || '';
         const newEntry = 'user: ' + prompt + '\nai: ' + idealResponse;
-        const updatedCorpus = (existing.trim() + '\n\n' + newEntry + '\n\n' + newEntry).trim();
+        const updatedCorpus = (existing.trim() + '\n\n' + newEntry).trim();
 
         document.getElementById('training-text').value = updatedCorpus;
         this.updateCorpusStats();
-        this.quickTrainModel(activeObj, updatedCorpus, 40);
-
-        this.updateStatsDisplay();
         this.closeTeachModal();
-        this.showToast("Saved ideal response and retrained model!");
+        this.showToast('Correction added. Training in the background…');
+        try {
+          await this.quickTrainModel(activeObj, updatedCorpus, 40);
+          this.showToast('Correction learned and model saved.');
+        } catch (err) {
+          console.error('Correction training failed:', err);
+          this.showToast('Correction was saved to the corpus, but training failed.', 'error');
+        }
       }
 
       // TRAINING STUDIO
       async startTraining() {
+        if (this.isTraining) return;
         const text = document.getElementById('training-text').value.trim();
         if (!text) {
           this.showToast("Please enter text or load a pack from Corpus Library first!", "error");
           return;
         }
 
+        if (text.length > 500000) {
+          this.showToast('Corpus is over 500,000 characters. Please split it into smaller files.', 'error');
+          return;
+        }
         this.isTraining = true;
         this.stopRequested = false;
 
@@ -1917,36 +1944,41 @@
           activeObj.engine.contextSize = contextSize;
           activeObj.engine.hiddenDim = hiddenDim;
           const dataset = activeObj.engine.prepareDataset(text, augment);
+          const MAX_TRAINING_EXAMPLES = 15000;
+          if (dataset.X.length > MAX_TRAINING_EXAMPLES) {
+            dataset.X.length = MAX_TRAINING_EXAMPLES;
+            dataset.Y.length = MAX_TRAINING_EXAMPLES;
+            this.showToast('Large corpus: training on the first 15,000 token examples to protect browser memory.');
+          }
 
           const lossPoints = [];
 
+          let completedEpochs = 0;
           for (let epoch = 1; epoch <= epochs; epoch++) {
             if (this.stopRequested) break;
-
             const lr = baseLr * (0.2 + 0.8 * 0.5 * (1 + Math.cos(Math.PI * epoch / epochs)));
-
             let epochLoss = 0;
             for (let i = 0; i < dataset.X.length; i++) {
-              const loss = activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
-              epochLoss += loss;
+              if (this.stopRequested) break;
+              epochLoss += activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
+              // Frequent yielding makes the Stop button and browser controls responsive.
+              if (i > 0 && i % 32 === 0) await new Promise(resolve => setTimeout(resolve, 0));
             }
-
+            if (this.stopRequested) break;
+            completedEpochs++;
             const avgLoss = epochLoss / Math.max(1, dataset.X.length);
             lossPoints.push(avgLoss);
             activeObj.engine.lossHistory.push(avgLoss);
-
-            if (epoch % 2 === 0 || epoch === epochs) {
-              document.getElementById('train-progress-bar').style.width = ((epoch / epochs) * 100) + '%';
-              document.getElementById('current-loss-val').innerText = avgLoss.toFixed(4);
-              this.drawLossChart(lossPoints);
-              await new Promise(r => setTimeout(r, 8));
-            }
+            document.getElementById('train-progress-bar').style.width = ((epoch / epochs) * 100) + '%';
+            document.getElementById('current-loss-val').innerText = avgLoss.toFixed(4);
+            document.getElementById('train-status-text').innerText = `Training epoch ${epoch}/${epochs}`;
+            this.drawLossChart(lossPoints);
+            await new Promise(resolve => setTimeout(resolve, 0));
           }
-
-          activeObj.engine.epochsTrained += epochs;
+          activeObj.engine.epochsTrained += completedEpochs;
           activeObj.engine.isTrained = true;
         } else {
-          activeObj.engine.train(text);
+          activeObj.engine.train(text.slice(0, 150000));
           document.getElementById('train-progress-bar').style.width = "100%";
           document.getElementById('current-loss-val').innerText = "0.000 (Indexed)";
         }
@@ -1955,11 +1987,11 @@
         document.getElementById('start-train-btn').disabled = false;
         document.getElementById('stop-train-btn').disabled = true;
         document.getElementById('train-status-dot').className = "w-2 h-2 rounded-full bg-emerald-500";
-        document.getElementById('train-status-text').innerText = "Training Complete!";
+        document.getElementById('train-status-text').innerText = this.stopRequested ? 'Training stopped safely.' : 'Training complete!';
 
         this.saveModelsToStorage();
         this.updateStatsDisplay();
-        this.showToast("Model '" + activeObj.name + "' trained! Switch to Chat Studio to test.");
+        this.showToast(this.stopRequested ? 'Training stopped; progress saved.' : "Model '" + activeObj.name + "' trained! Switch to Chat Studio to test.");
       }
 
       drawLossChart(lossPoints) {
@@ -2098,7 +2130,7 @@
         a.href = url;
         a.download = 'model-' + activeObj.name.toLowerCase().replace(/\s+/g, '-') + '.json';
         a.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
       exportAllModelsBundle() {
@@ -2113,7 +2145,7 @@
         a.href = url;
         a.download = 'teachable-ai-bundle-' + Date.now() + '.json';
         a.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
       importJSONFile(e) {
@@ -2125,6 +2157,7 @@
           try {
             const parsed = JSON.parse(evt.target.result);
             if (parsed.isBundle) {
+              if (!Array.isArray(parsed.models)) throw new Error('Invalid model bundle');
               parsed.models.forEach(item => {
                 const newM = this.createNewModel(item.name, item.type);
                 newM.engine.fromJSON(item.data);
@@ -2156,7 +2189,8 @@
           }));
           localStorage.setItem('teachable_ai_models_v3', JSON.stringify(serializable));
         } catch (e) {
-          console.warn("LocalStorage quota exceeded");
+          console.warn('Could not save model to localStorage:', e);
+          this.showToast('Model is too large for browser storage. Export a JSON backup.', 'error');
         }
       }
 

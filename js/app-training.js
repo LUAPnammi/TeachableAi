@@ -279,6 +279,8 @@ export class AppTraining {
       this.updateStatsDisplay();
       this.refreshMemoryInspector();
       if (this.nudgeBackup) this.nudgeBackup();
+      // If this model has a held-out test set, re-score it right away so progress is measurable.
+      if (this.rescoreAfterTraining) this.rescoreAfterTraining(activeObj).catch(err => console.warn('Re-scoring failed:', err));
     }
     this.showToast(toast);
   }
@@ -516,6 +518,6 @@ export class AppTraining {
     const text = document.getElementById('training-text').value;
     if (!text.trim()) { this.showToast('There is no corpus to export.', 'error'); return; }
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = 'training-corpus-0.2.1.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    a.href = url; a.download = 'training-corpus-0.2.2.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }

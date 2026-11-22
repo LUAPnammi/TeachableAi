@@ -6,7 +6,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>Teachable AI - 0.2.1 Beta | Build Your Own Model</title>
+  <title>Teachable AI - 0.2.2 Beta | Build Your Own Model</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,7 +59,7 @@
       <div class="min-w-0">
         <div class="flex items-center gap-2 min-w-0">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white truncate">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono shrink-0 hidden sm:inline-block">0.2.1 BETA</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono shrink-0 hidden sm:inline-block">0.2.2 BETA</span>
         </div>
         <p class="text-xs text-slate-400 hidden sm:block">Build · Teach · Train · Test your own AI</p>
       </div>
@@ -118,6 +118,10 @@
           <i class="fa-solid fa-flask text-amber-400 text-base"></i>
           <span>Evaluation</span>
         </button>
+        <button tab-target="improve-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
+          <i class="fa-solid fa-arrow-up-right-dots text-rose-400 text-base"></i>
+          <span>Improve Lab</span>
+        </button>
         <button tab-target="memory-tab" class="tab-btn flex-1 flex items-center justify-center md:justify-start gap-2.5 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent shrink-0">
           <i class="fa-solid fa-brain text-cyan-300 text-base"></i>
           <span>Memory</span>
@@ -167,7 +171,7 @@
 
         <div class="mt-1 pt-2 border-t border-slate-800 text-[11px] text-slate-500 leading-relaxed">
           <i class="fa-solid fa-bolt text-amber-400 mr-1"></i>
-          0.2.1 Beta Engine: Mini-batch Training in a Background Worker, Replay + Validation Early Stopping, Turn-Anchored Conditioning, and TF-IDF Retrieval.
+          0.2.2 Beta Engine: Held-out Test Scores, Review Queue for Generated Data, Progressive Keep-or-Revert Rounds, Mini-batch Training in a Background Worker, and TF-IDF Retrieval.
         </div>
       </div>
     </div>
@@ -218,7 +222,7 @@
             </div>
             <div class="flex flex-col gap-1">
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
-                Welcome to <b>Teachable AI 0.2.1 Beta</b>! I come pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away. Need help using the studio? Open the <b>Assistant</b> panel at the top right (or press Alt+A).
+                Welcome to <b>Teachable AI 0.2.2 Beta</b>! I come pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away. Need help using the studio? Open the <b>Assistant</b> panel at the top right (or press Alt+A).
               </div>
             </div>
           </div>
@@ -586,7 +590,7 @@
             <textarea id="studio-knowledge-input" rows="9" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-200 font-mono" placeholder="Describe your studio, its goals, features, roadmap, architecture, and how users should use it..."></textarea>
             <div class="flex flex-wrap gap-2">
               <button id="save-studio-knowledge" class="px-3 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white text-xs">Save studio knowledge</button>
-              <span id="studio-knowledge-status" class="text-[10px] text-slate-500 self-center">0.2.1 Beta studio reference preloaded.</span>
+              <span id="studio-knowledge-status" class="text-[10px] text-slate-500 self-center">0.2.2 Beta studio reference preloaded.</span>
             </div>
           </section>
 
@@ -676,6 +680,90 @@ tell me a joke</textarea>
         </div>
       </section>
 
+      <!-- ================= IMPROVE LAB ================= -->
+      <section id="improve-tab" class="tab-content flex-1 min-h-0 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 bg-slate-900/50">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-arrow-up-right-dots text-rose-400"></i> Improve Lab</h2>
+          <p class="text-xs text-slate-400 mt-1">Measure progress honestly (held-out test score), generate training data safely (review queue), and let rounds of targeted training keep only what improves the score.</p>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+          <!-- 1. Held-out test set -->
+          <div class="p-4 rounded-xl bg-slate-900/70 border border-emerald-500/25 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-emerald-200"><i class="fa-solid fa-list-check mr-1"></i> Held-out test set & score</span>
+              <div class="flex flex-wrap gap-2">
+                <button id="test-build-btn" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold"><i class="fa-solid fa-scissors mr-1"></i>Build test set from corpus</button>
+                <button id="test-score-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold"><i class="fa-solid fa-percent mr-1"></i>Score model now</button>
+                <button id="test-clear-btn" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs">Clear</button>
+              </div>
+            </div>
+            <p id="test-status" class="text-[11px] text-slate-400 leading-relaxed">No held-out test set for this model yet. Building one holds out 20% of your Q&A pairs (minimum 5 pairs needed): those questions are removed from the corpus and never trained on, so the score tells you whether more training actually helped.</p>
+            <p id="test-summary" class="text-xs text-slate-400"></p>
+            <div id="test-history" class="flex flex-wrap gap-1.5"></div>
+            <div id="test-failures" class="space-y-1.5"></div>
+          </div>
+
+          <!-- 2. Review queue -->
+          <div class="p-4 rounded-xl bg-slate-900/70 border border-cyan-500/25 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-cyan-200"><i class="fa-solid fa-inbox mr-1"></i> Review queue · generated training pairs</span>
+              <span id="review-counts" class="text-[11px] text-slate-500 font-mono">0 staged · 0 waiting · 0 approved</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">The assistant's suggestions land in this pending list, never straight into your corpus. Duplicates, conflicting answers, too-short answers and repeated answers are filtered out automatically, and one round can add at most 30 pairs. You approve, edit or reject the rest.</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-[11px] text-slate-400">
+              <label class="md:col-span-2">Topic / what to teach
+                <input id="review-topic" placeholder="e.g. photosynthesis, or leave empty to use the seed text" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+              </label>
+              <label>Pairs to generate
+                <select id="review-count" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white"><option>5</option><option>10</option><option selected>15</option><option>20</option><option>30</option></select>
+              </label>
+              <label class="flex items-end"><span class="flex items-center gap-2 pb-2"><input type="checkbox" id="review-seed-docs" checked class="accent-cyan-500"><span>Seed from my documents</span></span></label>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="review-generate-btn" class="px-3 py-1.5 rounded-lg bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-semibold"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate candidates</button>
+              <button id="review-approve-all" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">Approve all clean</button>
+              <button id="review-reject-all" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">Reject unapproved</button>
+              <button id="review-commit-btn" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold" disabled>Add approved pair(s) to the corpus</button>
+              <span id="review-status" class="text-[11px] text-slate-500"></span>
+            </div>
+            <div id="review-list" class="grid grid-cols-1 md:grid-cols-2 gap-2"><p class="text-xs text-slate-500">Nothing staged yet.</p></div>
+          </div>
+
+          <!-- 3. Progressive rounds -->
+          <div class="p-4 rounded-xl bg-slate-900/70 border border-rose-500/25 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-semibold text-rose-200"><i class="fa-solid fa-arrows-rotate mr-1"></i> Progressive training rounds · keep only improvements</span>
+              <span class="text-[10px] text-slate-500 font-mono">score ↑ keep · score ↓ revert</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">Each round: find the failed held-out questions → have the assistant generate targeted pairs (seeded from your documents, auto-filtered) → train → re-score → <b>keep the result if the score went up, undo it if not</b>. The loop stops when the score stops improving. In approval mode it pauses each round so nothing trains before you check it.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[11px] text-slate-400">
+              <label>Max rounds
+                <select id="prog-rounds" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option><option>8</option></select>
+              </label>
+              <label>Epochs per round
+                <select id="prog-epochs" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white"><option>10</option><option selected>20</option><option>30</option></select>
+              </label>
+              <label>Corpus size cap (chars)
+                <input id="prog-cap" type="number" min="2000" step="1000" value="20000" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white">
+              </label>
+              <label class="flex items-end"><span class="flex items-center gap-2 pb-2"><input type="checkbox" id="prog-approval" checked class="accent-rose-500"><span>Pause for approval each round</span></span></label>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="prog-start-btn" class="px-4 py-2 rounded-lg bg-gradient-to-r from-rose-600 to-accent-600 hover:from-rose-500 hover:to-accent-500 text-white text-xs font-semibold"><i class="fa-solid fa-play mr-1"></i>Start progressive rounds</button>
+              <button id="prog-stop-btn" disabled class="px-4 py-2 rounded-lg bg-slate-800 text-slate-500 text-xs font-semibold disabled:opacity-50"><i class="fa-solid fa-stop mr-1"></i>Stop loop</button>
+              <button id="prog-continue-btn" class="hidden px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold"><i class="fa-solid fa-check-double mr-1"></i>Approve & continue round</button>
+              <span id="prog-status" class="text-[11px] text-slate-500"></span>
+            </div>
+            <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+              <div id="prog-progress-bar" class="h-full bg-gradient-to-r from-rose-500 to-accent-500 w-0 transition-all duration-100"></div>
+            </div>
+            <div id="prog-log" class="p-3 rounded-lg bg-slate-950 border border-slate-800 max-h-56 overflow-y-auto space-y-0.5 font-mono"><p class="text-[11px] text-slate-500">The round log appears here: each round's pair count, score change and keep/revert decision.</p></div>
+          </div>
+
+        </div>
+      </section>
+
       <!-- ================= MEMORY INSPECTOR ================= -->
       <section id="memory-tab" class="tab-content flex-1 min-h-0 flex-col glass-panel rounded-2xl border border-slate-800 overflow-hidden hidden shadow-xl">
         <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex flex-wrap items-center justify-between gap-3">
@@ -742,7 +830,7 @@ tell me a joke</textarea>
         <div class="p-4 border-b border-slate-800 bg-slate-900/50">
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-400"></i>
-            How To Build Your Own AI (0.2.1 Beta)
+            How To Build Your Own AI (0.2.2 Beta)
           </h2>
           <p class="text-xs text-slate-400">A browser model lab for building, teaching, training from scratch, and testing local models</p>
         </div>
@@ -750,9 +838,12 @@ tell me a joke</textarea>
         <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs leading-relaxed text-slate-300">
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
             <h3 class="text-sm font-bold text-brand-400 flex items-center gap-2">
-              <i class="fa-solid fa-anchor"></i> 1. What Changed in 0.2.1 Beta?
+              <i class="fa-solid fa-anchor"></i> 1. What Changed in 0.2.2 Beta?
             </h3>
             <ul class="list-disc list-inside space-y-1 text-slate-400 pl-1">
+              <li><b>Held-out test set with a score (0.2.2):</b> the app reserves some Q&A pairs the model never trains on, scores the model on them after every run (e.g. "62% answered correctly"), keeps the score history per model, and lists the questions it fails.</li>
+              <li><b>Review queue for generated data (0.2.2):</b> assistant-written training pairs land in a pending list, automatically filtered for duplicates, conflicts with existing answers, and too-short or repeated answers. You approve, edit or reject — and generation is seeded from your own documents, not free imagination.</li>
+              <li><b>Progressive rounds with keep-or-revert (0.2.2):</b> each round targets the failed questions, stages the generated pairs, trains, re-scores the held-out set, and keeps the result only if the score improved. Approval mode pauses each round; Stop cancels the whole loop.</li>
               <li><b>Training in a Web Worker (0.2.1):</b> training runs in the background, so the page stays smooth on phones and the Stop button stops right away, keeping the epochs already finished.</li>
               <li><b>Mini-batch training (0.2.1):</b> the engine now learns from batches of examples with flatter loops, which is about twice as fast on the same hardware and trains more stably.</li>
               <li><b>Binary model storage (0.2.1):</b> weights are saved as raw Float32 data instead of JSON text, so saved models are much smaller. Older saves upgrade automatically on the first save.</li>

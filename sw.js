@@ -1,6 +1,6 @@
 // Teachable AI Studio service worker.
 // Bump CACHE_VERSION every time you upload a new version, so phones drop the old copy.
-const CACHE_VERSION = 'v0.2.1-1';
+const CACHE_VERSION = 'v0.2.2-1';
 const CACHE_NAME = 'teachable-ai-' + CACHE_VERSION;
 const APP_SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest', './icon.svg',
@@ -8,7 +8,7 @@ const APP_SHELL = [
   './js/app-training.js', './js/app-memory.js', './js/app-eval.js', './js/app-assistant.js',
   './js/app-qa-tools.js', './js/app-screen.js', './js/engines.js', './js/tokenizer.js',
   './js/semantic-memory.js', './js/doc-search.js', './js/corpus-library.js', './js/studio-notes.js',
-  './js/binary-codec.js', './js/trainer.js', './js/train-worker.js', './js/app-backup.js'
+  './js/binary-codec.js', './js/trainer.js', './js/train-worker.js', './js/app-backup.js', './js/app-improve.js'
 ];
 
 self.addEventListener('install', event => {

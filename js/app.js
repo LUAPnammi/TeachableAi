@@ -185,6 +185,7 @@ export class AIApp {
     this.initAssistantPanel();
     this.initQAGenerator();
     this.initBenchmark();
+    this.initImproveLab();
   }
 
   initializeModels() {
@@ -235,6 +236,7 @@ export class AIApp {
     activeSec.classList.remove('hidden');
     activeSec.classList.add('flex');
     if (targetId === 'eval-tab') this.renderBenchTargets();
+    if (targetId === 'improve-tab') this.refreshImproveLabUI();
     if (this.panel && !this.panel.messages.length) this.panelRender();
   }
 

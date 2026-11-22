@@ -191,7 +191,7 @@ export class AppAssistant {
     const systemContent = [
       `You are the Teachable AI Studio assistant (${ref.name}), a friendly helper that lives inside the app.`,
       `RULES: Reply in 1-3 short sentences. Be direct and practical, name the exact tab or button, and never ramble, list, or repeat yourself. Never invent features that are not in the STUDIO NOTES.`,
-      `You also have ASSISTANT ACTIONS: the app itself can create a model, start training, run evaluation, clean or check the corpus, export the active model, read a screen with OCR, and switch tabs when the user asks in plain words (examples: "create a model called Tutor and train it", "clean my corpus", "read my screen"). If the user asks you to change or build something, tell them to phrase it as one of those plain requests and the app will do it for them.`,
+      `You also have ASSISTANT ACTIONS: the app itself can create a model, start training, run evaluation, generate training pairs into the review queue, run progressive keep-or-revert training rounds, clean or check the corpus, export the active model, read a screen with OCR, and switch tabs when the user asks in plain words (examples: "create a model called Tutor and train it", "clean my corpus", "generate 10 pairs about photosynthesis", "run progressive rounds"). If the user asks you to change or build something, tell them to phrase it as one of those plain requests and the app will do it for them.`,
       `For studio questions use ONLY the STUDIO NOTES below. If the notes do not cover it, say you are not sure and point to the closest tab. For general questions answer briefly. Never claim you can change your own weights.`,
       ``,
       `STUDIO NOTES:`,
@@ -422,7 +422,7 @@ export class AppAssistant {
     if (!box || !this.panel) return;
     const msgs = this.panel.messages;
     if (!msgs.length) {
-      const tabNames = { 'chat-tab': 'Chat Studio', 'train-tab': 'Train Studio', 'library-tab': 'Corpus Library', 'models-tab': 'Models Hub', 'eval-tab': 'Evaluation', 'memory-tab': 'Memory', 'guide-tab': 'How To Guide' };
+      const tabNames = { 'chat-tab': 'Chat Studio', 'train-tab': 'Train Studio', 'library-tab': 'Corpus Library', 'models-tab': 'Models Hub', 'eval-tab': 'Evaluation', 'improve-tab': 'Improve Lab', 'memory-tab': 'Memory', 'guide-tab': 'How To Guide' };
       const chips = ['What can you do?', 'create a model called Tutor and train it', 'How do I train a model?', 'Summarize my documents'];
       box.innerHTML = `<div class="text-center py-6 space-y-3"><div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center text-white"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="text-sm font-bold text-white">Studio Assistant</div><p class="text-[11px] text-slate-400 leading-relaxed px-2">Ask how anything in the studio works, or turn on document search to ask about your imported files. Replies are short and stream live.</p><div class="flex flex-col gap-1.5 pt-1">${chips.map(c => `<button data-panel-chip="${this.escapeHTML(c)}" class="text-left px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] text-slate-200 transition">${this.escapeHTML(c)}</button>`).join('')}</div></div>`;
       box.querySelectorAll('[data-panel-chip]').forEach(b => b.addEventListener('click', () => this.panelSend(b.dataset.panelChip)));
@@ -583,6 +583,21 @@ export class AppAssistant {
       return (created ? `Created "${created.name}" and ` : '') + `started training "${tName}" on the current corpus. Watch the loss curve in Train Studio; the app saves automatically when it finishes.`;
     }
     if (created) return `Created "${created.name}" (${this.constructor.ENGINE_LABELS[created.type] || created.type}) and made it the active model. Say "train it" to train it on the current corpus, or paste new data in Train Studio.`;
+    // Improve Lab: generate pairs for review, or start the progressive keep-or-revert loop
+    const genMatch = p.match(/\bgenerate\b[^.?!]*?(\d+)?\s*(?:qa|q&a|pairs?)/);
+    if (genMatch && !isQuestion) {
+      this.switchTab('improve-tab');
+      const topicMatch = prompt.match(/\babout\s+(.+)$/i);
+      if (topicMatch) document.getElementById('review-topic').value = topicMatch[1].trim().replace(/[.?!]+$/, '');
+      if (genMatch[1]) { const sel = document.getElementById('review-count'); if (sel) sel.value = String(Math.min(30, Math.max(5, parseInt(genMatch[1]) || 10))); }
+      setTimeout(() => this.generateReviewPairs().catch(() => {}), 80);
+      return 'Opened Improve Lab and started generating candidate pairs into the Review Queue. Nothing is trained until you approve them there.';
+    }
+    if (!isQuestion && /\b(progressive|improve|upgrade)\b.*\b(rounds?|loop|training)\b|\brun (a |the )?(progressive|improvement) loop\b/.test(p)) {
+      this.switchTab('improve-tab');
+      setTimeout(() => this.startProgressiveRounds().catch(() => {}), 80);
+      return 'Started Progressive Rounds in Improve Lab: it targets the failed held-out questions, trains, re-scores, and keeps only improvements.';
+    }
     // Evaluate
     if (/\b(evaluate|run (a |the )?(tests?|eval|benchmark)|test (my|the) model)\b/.test(p) && !isQuestion) {
       this.switchTab('eval-tab');
@@ -604,7 +619,7 @@ export class AppAssistant {
       return 'Exported the active model as a .json brain file via your browser download.';
     }
     // Switch tabs
-    const tabMap = [['chat', 'chat-tab', 'Chat Studio'], ['training', 'train-tab', 'Train Studio'], ['train', 'train-tab', 'Train Studio'], ['library', 'library-tab', 'Corpus Library'], ['corpus', 'library-tab', 'Corpus Library'], ['model', 'models-tab', 'Models Hub'], ['eval', 'eval-tab', 'Evaluation'], ['memory', 'memory-tab', 'Memory'], ['guide', 'guide-tab', 'How To Guide']];
+    const tabMap = [['chat', 'chat-tab', 'Chat Studio'], ['training', 'train-tab', 'Train Studio'], ['train', 'train-tab', 'Train Studio'], ['library', 'library-tab', 'Corpus Library'], ['corpus', 'library-tab', 'Corpus Library'], ['model', 'models-tab', 'Models Hub'], ['eval', 'eval-tab', 'Evaluation'], ['improve', 'improve-tab', 'Improve Lab'], ['memory', 'memory-tab', 'Memory'], ['guide', 'guide-tab', 'How To Guide']];
     if (!isQuestion && /\b(open|go to|switch to|show|jump to|take me to)\b/.test(p)) {
       for (const [word, tab, label] of tabMap) {
         if (new RegExp('\\b' + word + '\\b').test(p)) { this.switchTab(tab); return 'Opened ' + label + '.'; }

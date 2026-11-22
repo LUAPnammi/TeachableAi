@@ -287,7 +287,7 @@ export class AppModels {
     const activeObj = this.getActiveModelObj();
     const payload = {
       formatVersion: 3,
-      appVersion: '0.2.1',
+      appVersion: '0.2.2',
       architecture: activeObj.type === 'neural' ? 'tiny-mlp-next-token' : (activeObj.type === 'attention' ? 'tiny-causal-self-attention-plus-ffn' : 'tfidf-ngram-retrieval'),
       exportedAt: new Date().toISOString(),
       trainedOnDevice: true,
@@ -311,10 +311,10 @@ export class AppModels {
       knowledgeItems: m.knowledgeItems || [],
       data: m.engine.toJSON({ weights: 'base64' })
     }));
-    this.downloadJSON('teachable-ai-backup-0.2.1-' + new Date().toISOString().slice(0, 10) + '.json', {
+    this.downloadJSON('teachable-ai-backup-0.2.2-' + new Date().toISOString().slice(0, 10) + '.json', {
       isBundle: true,
       formatVersion: 3,
-      appVersion: '0.2.1',
+      appVersion: '0.2.2',
       exportedAt: new Date().toISOString(),
       trainedOnDevice: true,
       models: bundle,

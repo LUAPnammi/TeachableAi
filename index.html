@@ -6,7 +6,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <title>Teachable AI - 0.1.75 Beta | Build Your Own Model</title>
+  <title>Teachable AI - 0.2.0 Beta | Build Your Own Model</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -74,7 +74,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">Teachable AI Studio</h1>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">0.1.75 BETA</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-950 border border-brand-700/60 text-brand-300 font-mono">0.2.0 BETA</span>
         </div>
         <p class="text-xs text-slate-400 hidden sm:block">Build · Teach · Train · Test your own AI</p>
       </div>
@@ -168,7 +168,7 @@
 
         <div class="mt-1 pt-2 border-t border-slate-800 text-[11px] text-slate-500 leading-relaxed">
           <i class="fa-solid fa-bolt text-amber-400 mr-1"></i>
-          0.1.75 Beta Engine: Replay + Validation Early Stopping, Turn-Anchored Conditioning, and TF-IDF Retrieval.
+          0.2.0 Beta Engine: Replay + Validation Early Stopping, Turn-Anchored Conditioning, and TF-IDF Retrieval.
         </div>
       </div>
     </div>
@@ -219,7 +219,7 @@
             </div>
             <div class="flex flex-col gap-1">
               <div class="p-3.5 rounded-2xl rounded-tl-sm bg-slate-900 border border-slate-800 text-slate-200 leading-relaxed shadow-sm">
-                Welcome to <b>Teachable AI 0.1.75 Beta</b>! I come pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away. Need help using the studio? Open the <b>Assistant</b> panel at the top right (or press Alt+A).
+                Welcome to <b>Teachable AI 0.2.0 Beta</b>! I come pre-loaded with starter conversational knowledge so you can say <b>"hi"</b> right away. Need help using the studio? Open the <b>Assistant</b> panel at the top right (or press Alt+A).
               </div>
             </div>
           </div>
@@ -348,9 +348,12 @@
             <textarea id="training-text" rows="9" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-500 rounded-xl p-3 text-xs font-mono text-slate-200 focus:outline-none transition leading-relaxed" placeholder="Paste user:/ai: dialogue pairs OR raw knowledge paragraphs here (or insert packs from the Corpus Library tab)..."></textarea>
             <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2">
               <p id="corpus-quality" class="text-[11px] text-slate-400 leading-relaxed">Dataset quality: waiting for corpus…</p>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
+                <button id="preflight-btn" class="text-[11px] text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 rounded-md px-2 py-1"><i class="fa-solid fa-clipboard-check mr-1"></i>Pre-flight check</button>
+                <button id="auto-fix-btn" class="text-[11px] text-amber-300 hover:text-amber-200 border border-amber-500/30 rounded-md px-2 py-1"><i class="fa-solid fa-broom mr-1"></i>Auto-fix</button>
                 <button id="clean-duplicates-btn" class="text-[11px] text-brand-300 hover:text-brand-200 border border-brand-500/30 rounded-md px-2 py-1">Remove duplicate lines</button>
                 <button id="export-corpus-btn" class="text-[11px] text-slate-300 hover:text-white border border-slate-700 rounded-md px-2 py-1">Export corpus .txt</button>
+                <button id="export-corpus-csv-btn" class="text-[11px] text-slate-300 hover:text-white border border-slate-700 rounded-md px-2 py-1">Export Q&A .csv</button>
               </div>
             </div>
           </div>
@@ -436,6 +439,10 @@
               <button id="stop-train-btn" disabled class="px-4 py-3 rounded-xl bg-slate-800 text-slate-500 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition disabled:opacity-50">
                 <i class="fa-solid fa-pause text-xs"></i>
                 <span>Stop</span>
+              </button>
+              <button id="undo-train-btn" title="Restore the model to exactly how it was before the last training run" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                <span>Undo</span>
               </button>
             </div>
 
@@ -580,7 +587,7 @@
             <textarea id="studio-knowledge-input" rows="9" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-200 font-mono" placeholder="Describe your studio, its goals, features, roadmap, architecture, and how users should use it..."></textarea>
             <div class="flex flex-wrap gap-2">
               <button id="save-studio-knowledge" class="px-3 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white text-xs">Save studio knowledge</button>
-              <span id="studio-knowledge-status" class="text-[10px] text-slate-500 self-center">0.1.75 Beta studio reference preloaded.</span>
+              <span id="studio-knowledge-status" class="text-[10px] text-slate-500 self-center">0.2.0 Beta studio reference preloaded.</span>
             </div>
           </section>
 
@@ -734,7 +741,7 @@ tell me a joke</textarea>
         <div class="p-4 border-b border-slate-800 bg-slate-900/50">
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-400"></i>
-            How To Build Your Own AI (0.1.75 Beta)
+            How To Build Your Own AI (0.2.0 Beta)
           </h2>
           <p class="text-xs text-slate-400">A browser model lab for building, teaching, training from scratch, and testing local models</p>
         </div>
@@ -742,7 +749,7 @@ tell me a joke</textarea>
         <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs leading-relaxed text-slate-300">
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
             <h3 class="text-sm font-bold text-brand-400 flex items-center gap-2">
-              <i class="fa-solid fa-anchor"></i> 1. What Changed in 0.1.75 Beta?
+              <i class="fa-solid fa-anchor"></i> 1. What Changed in 0.2.0 Beta?
             </h3>
             <ul class="list-disc list-inside space-y-1 text-slate-400 pl-1">
               <li><b>Studio Assistant side panel:</b> a Copilot-style chat docked on the right (toggle with the header button or Alt+A, drag its edge to resize) for the 3 local assistants. Chat Studio is now just for your own trained models.</li>
@@ -750,6 +757,9 @@ tell me a joke</textarea>
               <li><b>Q&A Generator:</b> in Train Studio, turn paragraphs into user:/ai: pairs (instant rules or assistant-written) and multiply them with paraphrased questions.</li>
               <li><b>Speed benchmark:</b> in Evaluation, compare tokens per second, latency and first-token time across your models and assistants, with a chart and JSON export.</li>
               <li><b>Streaming and speed stats:</b> replies stream live with a Stop button and show t/s, token count and response time.</li>
+              <li><b>Do-it-for-me actions (0.2.0):</b> ask the assistant in plain words to create a model, train it, evaluate, clean or check the corpus, export the model, or switch tabs, and the app performs the action and reports back.</li>
+              <li><b>Read my screen (0.2.0):</b> capture a window or tab (or OCR a screenshot you paste or pick), then say "turn this into training data" to convert the text into user:/ai: pairs.</li>
+              <li><b>Corpus pre-flight + auto-fix + undo (0.2.0):</b> find duplicates, conflicting answers and short answers before training, fix them in one click, export Q&A pairs as CSV, and undo the last training run to restore previous weights.</li>
               <li><b>Chat scrolls properly:</b> the app fills the screen and only the message list scrolls.</li>
             </ul>
           </div>
@@ -798,6 +808,11 @@ tell me a joke</textarea>
         <span>Search my documents</span>
         <span id="panel-rag-info" class="ml-auto text-[10px] text-slate-500"></span>
       </label>
+      <div class="flex items-center gap-1.5">
+        <button id="panel-screen-btn" title="Capture a window or tab and read its text with OCR" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] text-left truncate"><i class="fa-solid fa-expand mr-1 text-cyan-300"></i>Read my screen</button>
+        <button id="panel-shot-btn" title="Read text from a screenshot image (OCR)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px]"><i class="fa-solid fa-image"></i></button>
+        <input type="file" id="panel-screenshot-input" accept="image/*" class="hidden">
+      </div>
     </div>
     <div id="panel-messages" class="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 space-y-3 text-[13px]"></div>
     <div class="p-2.5 border-t border-slate-800 bg-slate-900/80 shrink-0">
@@ -1127,7 +1142,7 @@ tell me a joke</textarea>
     ];
 
     const STUDIO_BASE_NOTES = [
-      'OVERVIEW: Teachable AI Studio 0.1.75 Beta is a browser app for building, teaching, training and testing small language models on your own device. Everything runs locally and is saved in browser storage. It has two kinds of chat models: your own from-scratch models (tiny and simple) and 3 downloadable assistant models (SmolLM2 360M, Qwen2.5 0.5B, SmolLM2 135M) that explain the studio.',
+      'OVERVIEW: Teachable AI Studio 0.2.0 Beta is a browser app for building, teaching, training and testing small language models on your own device. Everything runs locally and is saved in browser storage. It has two kinds of chat models: your own from-scratch models (tiny and simple) and 3 downloadable assistant models (SmolLM2 360M, Qwen2.5 0.5B, SmolLM2 135M) that explain the studio.',
       'CHAT_STUDIO: Chat Studio talks to your own trained models. Pick one in the dropdown next to the message box, type, and press Send. Sliders: Temp (creativity), Top-K (limits word choices), Rep Penalty (stops looping), Max Tokens (reply length). Calculate previews tokenization, retrieval matches and the predicted answer. Live Memory adds new chat turns to retrieval memory without changing neural weights. Every reply shows speed (tokens per second, tokens, response time) and has Copy and Correct it buttons.',
       'ASSISTANT_PANEL: The Studio Assistant is a side panel on the right, like a code editor copilot. Open or close it with the Assistant button in the header or Alt+A, and drag its left edge to resize. Pick SmolLM2 360M, Qwen2.5 0.5B or SmolLM2 135M at the top; the first message downloads the model once and the browser caches it. Replies stream live, can be stopped with the Stop button, regenerated and copied, and show tokens per second and response time.',
       'DOCUMENT_SEARCH: The assistant panel has a Search my documents switch. When it is on, the assistant searches files imported into the Corpus Vault plus the active model memory, adds the best matching excerpts to its prompt, and shows the sources as numbered chips under the reply. Import files in Corpus Library under Corpus Vault. You can ask things like summarize my documents.',
@@ -1136,6 +1151,8 @@ tell me a joke</textarea>
       'TRAIN_STUDIO: Paste dialogue as user: and ai: lines, or plain knowledge paragraphs. Choose an engine: Turn-Anchored Neural MLP or Semantic TF-IDF plus N-Gram. Train Fresh From Scratch resets weights; otherwise the new text is merged and training continues. Hardware profile (Phone, Balanced, Large) caps vocabulary, examples, hidden size and epochs. Watch the loss curve and validation loss; early stopping keeps the best weights. Use Auto-Format, Remove duplicate lines and Export corpus.',
       'CORPUS_LIBRARY: 10 ready-made packs such as greetings, jokes, space, AI basics, web development, biology, fantasy RPG, study coach, history and cybersecurity. Each pack can be copied, appended to the trainer, or loaded and trained. The Corpus Vault imports your own .txt, .md, .csv, .json, .jsonl or .tsv files into IndexedDB so large data does not bloat the HTML file.',
       'MODELS_HUB: Create, select, duplicate, delete, export and import models as .json brain files or a bundle. Download and prepare the 3 assistant models here once; the browser caches them. Edit the Studio Reference Notes that all assistants read. Research Progression earns research points; Tiny Attention LM unlocks at 300 points.',
+      'ASSISTANT_ACTIONS: The assistant panel can also DO things when you ask in plain words: create a model (try: create a model called Tutor and train it), start or continue training (train it), run evaluation, run a pre-flight check or auto-fix the corpus, export the active model as a brain file, and switch tabs. Action results appear instantly in the panel without loading any assistant model.',
+      'SCREEN_READ: The Read my screen button in the assistant panel captures a window or tab you choose and reads its visible text with OCR (first run downloads the OCR reader once). The image button and pasting an image into the message box OCR a screenshot file instead. After a read, say turn this into training data or add this to my corpus. Screen capture requires a secure page (https or localhost); otherwise use a screenshot.',
       'EVALUATION: Run repeatable test prompts against the active model, optionally with expected answers, and see overlap score, repeat consistency, latency and regression checks. Compare all models, or compare the active model against an assistant. Export results as JSON. It is a qualitative bench, not an official benchmark.',
       'MEMORY: Inspect indexed Q&A and knowledge chunks, stored corpus size and neural context size. Set tone, answer length and a custom instruction. Vocabulary Workshop teaches new terms. Knowledge facts can be edited, versioned, restored and merged. Rebuild retrieval index after changes; retrain to update neural weights.',
       'LIMITS: Own models are tiny next-token networks, so they mainly retrieve what you taught them and can be wrong. Assistant models are small and can also make mistakes; they cannot change their own weights. If unsure about a studio detail, say so.'
@@ -1924,6 +1941,8 @@ tell me a joke</textarea>
       constructor() {
         this.models = [];
         this.activeModelId = null;
+        this.lastScreenText = '';
+        this.lastTrainingSnapshot = null;
         this.isRestoring = true;
         this.isTraining = false;
         this.stopRequested = false;
@@ -2215,6 +2234,10 @@ tell me a joke</textarea>
 
         document.getElementById('training-text').addEventListener('input', () => this.updateCorpusStats());
         document.getElementById('clean-duplicates-btn').addEventListener('click', () => this.cleanCorpusDuplicates());
+        document.getElementById('preflight-btn')?.addEventListener('click', () => this.switchTab('train-tab') || this.runCorpusPreflight());
+        document.getElementById('auto-fix-btn')?.addEventListener('click', () => this.switchTab('train-tab') || this.autoFixCorpus());
+        document.getElementById('export-corpus-csv-btn')?.addEventListener('click', () => this.exportCorpusCSV());
+        document.getElementById('undo-train-btn')?.addEventListener('click', () => this.undoLastTraining());
         document.getElementById('run-eval-btn').addEventListener('click', () => this.runEvaluation());
         document.getElementById('export-eval-btn').addEventListener('click', () => this.exportEvaluation());
         document.getElementById('compare-eval-btn').addEventListener('click', () => this.compareEvaluation());
@@ -2473,7 +2496,8 @@ tell me a joke</textarea>
         const context = this.buildStudioContext(prompt);
         const systemContent = [
           `You are the Teachable AI Studio assistant (${ref.name}), a friendly helper that lives inside the app.`,
-          `RULES: Reply in at most 2 short sentences. Be direct and practical, name the exact tab or button to use, and never ramble, list, or repeat yourself.`,
+          `RULES: Reply in 1-3 short sentences. Be direct and practical, name the exact tab or button, and never ramble, list, or repeat yourself. Never invent features that are not in the STUDIO NOTES.`,
+          `You also have ASSISTANT ACTIONS: the app itself can create a model, start training, run evaluation, clean or check the corpus, export the active model, read a screen with OCR, and switch tabs when the user asks in plain words (examples: "create a model called Tutor and train it", "clean my corpus", "read my screen"). If the user asks you to change or build something, tell them to phrase it as one of those plain requests and the app will do it for them.`,
           `For studio questions use ONLY the STUDIO NOTES below. If the notes do not cover it, say you are not sure and point to the closest tab. For general questions answer briefly. Never claim you can change your own weights.`,
           ``,
           `STUDIO NOTES:`,
@@ -2484,7 +2508,9 @@ tell me a joke</textarea>
           { role: 'user', content: 'how do I teach my model new facts?' },
           { role: 'assistant', content: 'Open Train Studio, paste your facts or user:/ai: pairs, then press Merge & Train. You can also add single facts in the Memory tab.' },
           { role: 'user', content: 'what does temperature do?' },
-          { role: 'assistant', content: 'Temperature sets creativity: low values give steady, predictable replies and high values give more varied ones.' }
+          { role: 'assistant', content: 'Temperature sets creativity: low values give steady, predictable replies and high values give more varied ones.' },
+          { role: 'user', content: 'make me a space bot and teach it space facts' },
+          { role: 'assistant', content: "Just say: create a model called Space Bot and train it. The app builds it, trains it on whatever is in Train Studio, and you can load the space pack from Corpus Library first." }
         ];
         const genOpts = { max_new_tokens: 60, do_sample: true, temperature: 0.25, top_p: 0.85, repetition_penalty: 1.1 };
 
@@ -2877,13 +2903,13 @@ tell me a joke</textarea>
         const text = document.getElementById('training-text').value;
         if (!text.trim()) { this.showToast('There is no corpus to export.', 'error'); return; }
         const blob = new Blob([text], { type: 'text/plain;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = 'training-corpus-0.1.75-beta.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        a.href = url; a.download = 'training-corpus-0.2.0-beta.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
       exportEvaluation() {
         if (!this.lastEvaluation.length) { this.showToast('Run an evaluation first.', 'error'); return; }
-        const blob = new Blob([JSON.stringify({ appVersion: '0.1.75-beta', results: this.lastEvaluation }, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'teachable-ai-evaluation-0.1.75-beta.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        const blob = new Blob([JSON.stringify({ appVersion: '0.2.0-beta', results: this.lastEvaluation }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'teachable-ai-evaluation-0.2.0-beta.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
       autoFormatCorpus() {
@@ -3142,7 +3168,18 @@ tell me a joke</textarea>
           this.prepareLocalReference(ref.key).catch(() => {}).finally(() => this.updatePanelStatus());
         });
         document.getElementById('panel-send-btn').addEventListener('click', () => this.panelSend());
+        document.getElementById('panel-screen-btn')?.addEventListener('click', () => this.runScreenRead());
+        document.getElementById('panel-shot-btn')?.addEventListener('click', () => document.getElementById('panel-screenshot-input')?.click());
+        document.getElementById('panel-screenshot-input')?.addEventListener('change', e => this.ocrScreenshotFile(e));
         const input = document.getElementById('panel-input');
+        input.addEventListener('paste', e => {
+          const items = Array.from((e.clipboardData && e.clipboardData.items) || []);
+          const imgItem = items.find(it => it.type && it.type.startsWith('image/'));
+          if (imgItem) {
+            const file = imgItem.getAsFile();
+            if (file) { e.preventDefault(); this.ocrScreenshotFile({ target: { files: [file] } }); }
+          }
+        });
         input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!P.busy) this.panelSend(); } });
         input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 120) + 'px'; });
         document.getElementById('panel-resize').addEventListener('mousedown', e => {
@@ -3258,7 +3295,7 @@ tell me a joke</textarea>
         const msgs = this.panel.messages;
         if (!msgs.length) {
           const tabNames = { 'chat-tab': 'Chat Studio', 'train-tab': 'Train Studio', 'library-tab': 'Corpus Library', 'models-tab': 'Models Hub', 'eval-tab': 'Evaluation', 'memory-tab': 'Memory', 'guide-tab': 'How To Guide' };
-          const chips = ['How do I train a model?', 'What is Live Memory?', 'Explain the ' + (tabNames[this.currentTabId] || 'Chat Studio') + ' tab', 'Summarize my documents'];
+          const chips = ['What can you do?', 'create a model called Tutor and train it', 'How do I train a model?', 'Summarize my documents'];
           box.innerHTML = `<div class="text-center py-6 space-y-3"><div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center text-white"><i class="fa-solid fa-wand-magic-sparkles"></i></div><div class="text-sm font-bold text-white">Studio Assistant</div><p class="text-[11px] text-slate-400 leading-relaxed px-2">Ask how anything in the studio works, or turn on document search to ask about your imported files. Replies are short and stream live.</p><div class="flex flex-col gap-1.5 pt-1">${chips.map(c => `<button data-panel-chip="${this.escapeHTML(c)}" class="text-left px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] text-slate-200 transition">${this.escapeHTML(c)}</button>`).join('')}</div></div>`;
           box.querySelectorAll('[data-panel-chip]').forEach(b => b.addEventListener('click', () => this.panelSend(b.dataset.panelChip)));
           return;
@@ -3353,6 +3390,8 @@ tell me a joke</textarea>
         try {
           const quick = this.quickAssistantReply(prompt, ref.name);
           if (quick) { finish({ role: 'ai', text: quick, stats: { source: 'instant', ms: 0, tokens: 0, tps: 0 } }); return; }
+          const acted = await this.handleAssistantCommand(prompt);
+          if (acted) { finish({ role: 'ai', text: acted, stats: { source: 'action', ms: 0, tokens: 0, tps: 0 } }); return; }
           let hits = { context: '', sources: [], noDocsAsked: false };
           if (document.getElementById('panel-rag-toggle').checked) {
             hits = await this.searchDocs(prompt);
@@ -3636,7 +3675,7 @@ tell me a joke</textarea>
               memoryHitPct: rows.filter(r => r.hit).length / rows.length * 100
             });
           }
-          this.lastBench = { appVersion: '0.1.75-beta', ranAt: new Date().toISOString(), prompts, runsPerPrompt: runs, results };
+          this.lastBench = { appVersion: '0.2.0-beta', ranAt: new Date().toISOString(), prompts, runsPerPrompt: runs, results };
           this.renderBenchResults(results);
           status.textContent = `Done · ${results.length} model(s) · ${prompts.length} prompt(s) × ${runs} run(s).`;
         } finally { btn.disabled = false; }
@@ -3661,12 +3700,325 @@ tell me a joke</textarea>
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
+      /* ============ Assistant Actions: the app does things on request ============ */
+      static ENGINE_LABELS = { neural: 'Turn-Anchored Neural MLP', ngram: 'Semantic TF-IDF + N-Gram', attention: 'Tiny Attention LM' };
+
+      async handleAssistantCommand(prompt) {
+        const p = String(prompt || '').toLowerCase();
+        const isQuestion = /\b(how|what|why|when|which|where|should|explain|tell me about the|what does)\b/.test(p);
+        // Screen text follow-ups (after a screen/screenshot read)
+        if (/(turn|convert|make|use)\s+(this|it|that|the screen|the text)\b.*\b(training|pairs|qa|q&a|dataset|data)\b/.test(p)) return this.materialToTraining(this.lastScreenText, 'Screen text');
+        if (/(add|store|save|keep)\s+(this|it|that|the screen|the text)\b.*\b(corpus|training|dataset)\b/.test(p)) return this.appendRawToCorpus(this.lastScreenText, 'Screen text');
+        // Create a model
+        const createMatch = p.match(/\b(create|make|build|new|spawn)\b[^.?!]*\b(model|ai|assistant|bot|brain|character)\b/);
+        let created = null;
+        if (createMatch && !isQuestion) {
+          let name = '';
+          const nm = prompt.match(/(?:called|named|name\s+it|call\s+it)\s+["']?([A-Za-z0-9][\w\s'-]{0,40}?)(?=["']?\s*(?:,|and\b|then\b|with\b|please|now\b|\.|$))/i);
+          if (nm) name = nm[1].trim();
+          let type = 'neural';
+          if (/\b(ngram|n-gram|tf-?idf|semantic|retrieval)\b/.test(p)) type = 'ngram';
+          else if (/\battention\b/.test(p)) type = 'attention';
+          created = this.createNewModel(name || 'Assistant Model', type);
+          this.switchTab('models-tab');
+        }
+        // Train the model
+        const trainMatch = p.match(/\b(train|teach|fit)\b/);
+        if (trainMatch && !isQuestion) {
+          if (this.isTraining) return 'Training is already running; let it finish first.';
+          const corpusEl = document.getElementById('training-text');
+          const hasCorpus = Boolean(corpusEl && corpusEl.value.trim());
+          if (created && !hasCorpus) {
+            this.switchTab('train-tab');
+            return `Created "${created.name}" (${this.constructor.ENGINE_LABELS[created.type] || created.type}). Train Studio is open, but the corpus is empty: paste facts, load a pack from Corpus Library, or say "read my screen" to capture text, then say "train it".`;
+          }
+          if (!hasCorpus) return 'The training corpus is empty. Add facts in Train Studio or load a pack from Corpus Library first, then say "train it".';
+          this.switchTab('train-tab');
+          const tName = created ? created.name : (this.getActiveModelObj()?.name || 'the active model');
+          this.startTraining().catch(err => this.showToast('Training failed: ' + (err.message || 'unexpected error'), 'error'));
+          return (created ? `Created "${created.name}" and ` : '') + `started training "${tName}" on the current corpus. Watch the loss curve in Train Studio; the app saves automatically when it finishes.`;
+        }
+        if (created) return `Created "${created.name}" (${this.constructor.ENGINE_LABELS[created.type] || created.type}) and made it the active model. Say "train it" to train it on the current corpus, or paste new data in Train Studio.`;
+        // Evaluate
+        if (/\b(evaluate|run (a |the )?(tests?|eval|benchmark)|test (my|the) model)\b/.test(p) && !isQuestion) {
+          this.switchTab('eval-tab');
+          setTimeout(() => document.getElementById('run-eval-btn')?.click(), 60);
+          return 'Opened Evaluation and started a test run on the active model.';
+        }
+        // Corpus pre-flight / clean
+        if (/\b(clean|dedupe|deduplicate|remove duplicates|fix)\b.*\b(corpus|dataset|data|pairs)\b/.test(p) && !isQuestion) {
+          this.switchTab('train-tab');
+          return this.autoFixCorpus();
+        }
+        if (/\b(preflight|pre-flight|check|scan|audit|review)\b.*\b(corpus|dataset|data|pairs|training)\b/.test(p) && !isQuestion) {
+          this.switchTab('train-tab');
+          return this.runCorpusPreflight();
+        }
+        // Export model
+        if (/\bexport\b.*\b(model|brain)\b|\bsave\b.*\bbrain\b/.test(p) && !isQuestion) {
+          this.exportActiveModelJSON();
+          return 'Exported the active model as a .json brain file via your browser download.';
+        }
+        // Switch tabs
+        const tabMap = [['chat', 'chat-tab', 'Chat Studio'], ['training', 'train-tab', 'Train Studio'], ['train', 'train-tab', 'Train Studio'], ['library', 'library-tab', 'Corpus Library'], ['corpus', 'library-tab', 'Corpus Library'], ['model', 'models-tab', 'Models Hub'], ['eval', 'eval-tab', 'Evaluation'], ['memory', 'memory-tab', 'Memory'], ['guide', 'guide-tab', 'How To Guide']];
+        if (!isQuestion && /\b(open|go to|switch to|show|jump to|take me to)\b/.test(p)) {
+          for (const [word, tab, label] of tabMap) {
+            if (new RegExp('\\b' + word + '\\b').test(p)) { this.switchTab(tab); return 'Opened ' + label + '.'; }
+          }
+        }
+        return '';
+      }
+
+      /* ============ Screen reading (capture + OCR) ============ */
+      ensureTesseract() {
+        if (window.Tesseract) return Promise.resolve(window.Tesseract);
+        if (this._tesseractPromise) return this._tesseractPromise;
+        this._tesseractPromise = new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+          s.onload = () => window.Tesseract ? resolve(window.Tesseract) : reject(new Error('the OCR library loaded but is unavailable'));
+          s.onerror = () => { this._tesseractPromise = null; reject(new Error('the OCR library could not be downloaded (are you offline?)')); };
+          document.head.appendChild(s);
+        });
+        return this._tesseractPromise;
+      }
+
+      async ocrFromURL(source, onProgress) {
+        const T = await this.ensureTesseract();
+        const res = await T.recognize(source, 'eng', { logger: m => { if (onProgress && m && m.status && m.progress != null) onProgress(m.status, m.progress); } });
+        return String(res?.data?.text || '').replace(/\n{3,}/g, '\n\n').trim();
+      }
+
+      async captureScreenCanvas() {
+        if (!window.isSecureContext) throw new Error('screen capture needs a secure page (https:// or localhost). Open the app from localhost, or take a screenshot and use the image button instead.');
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) throw new Error('this browser cannot capture the screen. Take a screenshot and use the image button instead.');
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        try {
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.muted = true;
+          await video.play();
+          await new Promise(r => setTimeout(r, 800));
+          const w = video.videoWidth || 1280, h = video.videoHeight || 720;
+          const scale = Math.min(1, 1600 / w);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(w * scale));
+          canvas.height = Math.max(1, Math.round(h * scale));
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          return canvas.toDataURL('image/png');
+        } finally {
+          stream.getTracks().forEach(t => t.stop());
+        }
+      }
+
+      async runScreenRead() {
+        const P = this.panel;
+        if (!P || P.busy) { this.showToast('Stop the current reply first.', 'error'); return; }
+        P.messages.push({ role: 'user', text: 'Read my screen' });
+        this.panelRender();
+        const live = this.panelStreamBubble();
+        try {
+          live.setText('Waiting for screen share… choose a window or tab.');
+          const image = await this.captureScreenCanvas();
+          live.setText('Reading pixels with OCR… first run downloads the reader once.');
+          const text = await this.ocrFromURL(image, (st, pr) => live.setText('OCR: ' + st + ' ' + Math.round(pr * 100) + '%'));
+          live.wrapper.remove();
+          this.lastScreenText = text;
+          P.messages.push({ role: 'ai', text: this.buildScreenReply(text, 'your screen'), stats: { source: 'screen-ocr', ms: 0, tokens: 0, tps: 0 } });
+        } catch (err) {
+          live.wrapper.remove();
+          P.messages.push({ role: 'ai', text: 'Screen read failed: ' + (err.message || err) + ' You can also take a screenshot and press the image button.', stats: null });
+        }
+        this.persistPanel();
+        this.panelRender();
+      }
+
+      async ocrScreenshotFile(e) {
+        const file = e && e.target && e.target.files ? e.target.files[0] : null;
+        if (!file) return;
+        if (e.target) e.target.value = '';
+        const P = this.panel;
+        if (!P || P.busy) { this.showToast('Stop the current reply first.', 'error'); return; }
+        P.messages.push({ role: 'user', text: 'Read this screenshot' });
+        this.panelRender();
+        const live = this.panelStreamBubble();
+        try {
+          live.setText('Reading image with OCR… first run downloads the reader once.');
+          const url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('could not read the image file')); r.readAsDataURL(file); });
+          const text = await this.ocrFromURL(url, (st, pr) => live.setText('OCR: ' + st + ' ' + Math.round(pr * 100) + '%'));
+          live.wrapper.remove();
+          this.lastScreenText = text;
+          P.messages.push({ role: 'ai', text: this.buildScreenReply(text, 'your screenshot'), stats: { source: 'screenshot-ocr', ms: 0, tokens: 0, tps: 0 } });
+        } catch (err) {
+          live.wrapper.remove();
+          P.messages.push({ role: 'ai', text: 'Screenshot read failed: ' + (err.message || err), stats: null });
+        }
+        this.persistPanel();
+        this.panelRender();
+      }
+
+      buildScreenReply(text, sourceLabel) {
+        const chars = String(text || '').length;
+        if (!chars) return 'I read ' + sourceLabel + ' but could not find readable text. Try a screenshot at a larger zoom, or heavier-contrast text.';
+        const words = String(text).split(/\s+/).filter(Boolean).length;
+        const preview = String(text).trim().slice(0, 400);
+        return 'I read ' + chars.toLocaleString() + ' characters (' + words + ' words) from ' + sourceLabel + '. Preview:\n\n' + preview + (chars > 400 ? '…' : '') + '\n\nNext steps: say "turn this into training data" to convert it into user:/ai: pairs, "add this to my corpus" to store the raw text, or just ask me anything about it.';
+      }
+
+      materialToTraining(raw, label) {
+        const text = String(raw || '').trim().slice(0, 30000);
+        if (!text) { this.showToast('Read a screen or screenshot first.', 'error'); return 'I have not read anything yet. Press "Read my screen" or the image button first.'; }
+        const paras = this.parseParagraphs(text);
+        const output = [];
+        for (const para of paras) {
+          for (const pair of this.qaFromParagraph(para, 3)) output.push('user: ' + pair.q + '\nai: ' + pair.a);
+        }
+        const area = document.getElementById('training-text');
+        if (!area) return 'Train Studio not found.';
+        if (output.length) {
+          area.value = this.mergeCorpus(area.value, output.join('\n\n'), false);
+          this.updateCorpusStats();
+          this.switchTab('train-tab');
+          this.showToast('Added ' + output.length + ' Q&A pairs from ' + label + '.');
+          return 'Converted ' + paras.length + ' paragraph(s) from ' + label + ' into ' + output.length + ' new user:/ai: pairs and appended them to Train Studio. Review them, then say "train it" (or press Merge & Train).';
+        }
+        area.value = this.mergeCorpus(area.value, text, false);
+        this.updateCorpusStats();
+        this.switchTab('train-tab');
+        this.showToast('Appended raw ' + label + ' to the corpus.');
+        return 'The text had no clear paragraphs, so I appended it to the corpus as raw knowledge. Run the Q&A Generator in Train Studio to shape it into pairs, then say "train it".';
+      }
+
+      appendRawToCorpus(raw, label) {
+        const text = String(raw || '').trim().slice(0, 50000);
+        if (!text) { this.showToast('Read a screen or screenshot first.', 'error'); return 'I have not read anything yet. Press "Read my screen" or the image button first.'; }
+        const area = document.getElementById('training-text');
+        area.value = this.mergeCorpus(area.value, text, false);
+        this.updateCorpusStats();
+        this.switchTab('train-tab');
+        this.showToast('Appended ' + text.length.toLocaleString() + ' characters to the corpus.');
+        return 'Stored the raw text from ' + label + ' into the training corpus. Review it in Train Studio, then say "train it".';
+      }
+
+      /* ============ Corpus pre-flight check, auto-fix, CSV export, undo training ============ */
+      runCorpusPreflight() {
+        const area = document.getElementById('training-text');
+        const text = area.value.replace(/\r\n/g, '\n').trim();
+        if (!text) { this.showToast('The corpus is empty; nothing to check.', 'error'); return 'The corpus is empty; nothing to check.'; }
+        const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+        const keyOf = b => { const m = b.match(/^user\s*:\s*(.+?)$/im); return m ? m[1].trim().toLowerCase().replace(/\s+/g, ' ') : null; };
+        const pairBlocks = blocks.filter(b => /^user\s*:/im.test(b) && /\bai\s*:/im.test(b));
+        const userOnlyBlocks = blocks.filter(b => /^user\s*:/im.test(b) && !/\bai\s*:/im.test(b));
+        const exactDupes = blocks.length - new Set(blocks.map(b => b.toLowerCase().replace(/[\s.:;]/g, ' ').replace(/\s+/g, ' ').trim())).size;
+        const byQ = new Map();
+        for (const b of pairBlocks) { const k = keyOf(b); if (k) { if (!byQ.has(k)) byQ.set(k, []); byQ.get(k).push(b); } }
+        let conflicts = 0, conflictSamples = [];
+        for (const [q, bs] of byQ) {
+          const ans = new Set(bs.map(b => (b.match(/^\s*(?:ai|bot|assistant|a)\s*:\s*(.+)$/im) || [])[1] || '').map(x => x.trim().toLowerCase().replace(/\s+/g, ' ')));
+          if (ans.size > 1) { conflicts++; if (conflictSamples.length < 3) conflictSamples.push(q); }
+        }
+        const shortAnswers = pairBlocks.filter(b => { const m = b.match(/^\s*(?:ai|bot|assistant|a)\s*:\s*(.+)$/im); return !m || m[1].trim().split(/\s+/).filter(Boolean).length < 3; }).length;
+        const paragraphs = this.parseParagraphs(text).length;
+        const qualityEl = document.getElementById('corpus-quality');
+        const problems = exactDupes + conflicts + shortAnswers + userOnlyBlocks;
+        const report = [
+          problems ? 'Pre-flight found ' + problems + ' issue(s):' : 'Pre-flight check passed: no blocking issues found.',
+          exactDupes ? '\n· ' + exactDupes + ' duplicate block(s)' : '',
+          conflicts ? '\n· ' + conflicts + ' question(s) with conflicting answers' + (conflictSamples.length ? ' (e.g. "' + conflictSamples.join('", "') + '")' : '') : '',
+          shortAnswers ? '\n· ' + shortAnswers + ' pair(s) with empty or very short answers' : '',
+          userOnlyBlocks ? '\n· ' + userOnlyBlocks + ' user line(s) with no answer' : '',
+          '\n\nTotals: ' + blocks.length + ' blocks · ' + pairBlocks.length + ' Q&A pairs · ' + paragraphs + ' paragraph(s)'
+        ].filter(Boolean).join('');
+        if (qualityEl) qualityEl.textContent = 'Pre-flight: ' + pairBlocks.length + ' pairs · ' + exactDupes + ' dupes · ' + conflicts + ' conflicts · ' + shortAnswers + ' short answers · ' + paragraphs + ' paragraphs';
+        this.showToast(problems ? 'Pre-flight found ' + problems + ' issue(s). Use Auto-fix, then review.' : 'Pre-flight check passed.');
+        return report;
+      }
+
+      autoFixCorpus() {
+        const area = document.getElementById('training-text');
+        const text = area.value.replace(/\r\n/g, '\n').trim();
+        if (!text) { this.showToast('The corpus is empty; nothing to fix.', 'error'); return 'The corpus is empty; nothing to fix.'; }
+        const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+        const keyOf = b => { const m = b.match(/^user\s*:\s*(.+?)$/im); return m ? m[1].trim().toLowerCase().replace(/\s+/g, ' ') : null; };
+        const seenExact = new Set();
+        const latestByQ = new Map();
+        const keptNonQA = [];
+        let removedDupes = 0, resolvedConflicts = 0;
+        for (const b of blocks) {
+          const key = b.toLowerCase().replace(/[\s.:;]/g, ' ').replace(/\s+/g, ' ').trim();
+          if (seenExact.has(key)) { removedDupes++; continue; }
+          seenExact.add(key);
+          const k = keyOf(b);
+          if (k) {
+            if (latestByQ.has(k)) resolvedConflicts++;
+            latestByQ.set(k, b);
+          } else {
+            keptNonQA.push(b);
+          }
+        }
+        const fixedText = ([...latestByQ.values(), ...keptNonQA]).join('\n\n');
+        if (fixedText === text && !removedDupes && !resolvedConflicts) {
+          this.showToast('Auto-fix found nothing more to clean; exact duplicate lines were already removed.');
+          return 'Auto-fix found nothing more to clean.';
+        }
+        area.value = fixedText;
+        this.updateCorpusStats();
+        const msg = 'Auto-fix: removed ' + removedDupes + ' duplicate block(s), kept the newest answer for ' + resolvedConflicts + ' conflicting question(s). Review, then train.';
+        this.showToast(msg);
+        return msg;
+      }
+
+      exportCorpusCSV() {
+        const pairs = this.parseDialoguePairs(document.getElementById('training-text').value);
+        if (!pairs.length) { this.showToast('No user:/ai: pairs found to export.', 'error'); return; }
+        const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
+        const csv = 'question,answer\n' + pairs.map(p => esc(p.q) + ',' + esc(p.a)).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (this.getActiveModelObj()?.name || 'corpus').replace(/[^\w-]+/g, '_').toLowerCase() + '-dataset.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+        this.showToast('Exported ' + pairs.length + ' Q&A pairs as CSV.');
+      }
+
+      undoLastTraining() {
+        const snap = this.lastTrainingSnapshot;
+        if (!snap) { this.showToast('No training run to undo yet.', 'error'); return; }
+        if (this.isTraining) { this.showToast('Wait for training to finish first.', 'error'); return; }
+        const m = this.models.find(x => x.id === snap.modelId);
+        if (!m) { this.showToast('That model no longer exists.', 'error'); return; }
+        try {
+          const eng = m.type === 'neural' ? new TinyNeuralLM() : (m.type === 'attention' ? new TinyAttentionLM() : new HybridNGramEngine());
+          eng.fromJSON(snap.json);
+          m.engine = eng;
+          this.lastTrainingSnapshot = null;
+          this.saveModelsToStorage();
+          this.updateStatsDisplay();
+          this.refreshMemoryInspector();
+          this.showToast('Undid the last training run of "' + (snap.name || m.name) + '"; previous weights restored.');
+        } catch (err) {
+          this.showToast('Could not undo: ' + (err.message || err), 'error');
+        }
+      }
+
       quickAssistantReply(prompt, name) {
         const p = String(prompt || '').toLowerCase().trim().replace(/[!.?]+$/g, '');
-        if (/^(hi|hello|hey|yo|hiya|good (morning|afternoon|evening))$/.test(p)) return "Hi! I'm your Teachable AI Studio assistant. Ask me how to train a model, add data, or use any tab.";
+        if (/^(hi|hello|hey|yo|hiya|good (morning|afternoon|evening))$/.test(p)) return "Hi! I'm your Teachable AI Studio assistant. I can explain any tab, create or train a model for you (try: create a model called Tutor and train it), check your dataset, or read text from your screen with the Read my screen button below.";
         if (/^(thanks|thank you|ty|thx)$/.test(p)) return "You're welcome! Ask me anything else about the studio.";
         if (/^(bye|goodbye|see you|see you later)$/.test(p)) return 'Goodbye! Come back anytime.';
-        if (/^(who are you|what are you|what is your name|what's your name|whats your name)$/.test(p)) return `I'm ${name}, a small local assistant that helps you use Teachable AI Studio.`;
+        if (/^(who are you|what are you|what is your name|what's your name|whats your name)$/.test(p)) return `I'm ${name}, a small local assistant that runs inside Teachable AI Studio. I can explain the app, run actions like creating or training a model, and OCR text from your screen.`;
+        if (/^what can you do|^(help|capabilities|features|commands)/.test(p)) return "Four things: answer studio questions, run app actions from plain requests (create a model, train it, evaluate, clean the corpus, switch tabs), check your training data with a pre-flight scan, and read text from your screen or a screenshot with OCR.";
+        if (/(how (do|to|can))\s*(i|you)?\s*(train|teach)/.test(p)) return "Open Train Studio, paste user:/ai: pairs or knowledge paragraphs (or load a pack from Corpus Library), then press Merge & Train. Or just tell me: create a model called Tutor and train it.";
+        if (/(what is|what's|whats)\s*(an?|the)?\s*epoch/.test(p)) return "An epoch is one full pass over your training examples. More epochs remember better but overfit and take longer; the app early-stops when validation loss stops improving.";
+        if (/(learning rate|what is lr|what does lr)/.test(p)) return "Learning rate is the step size of weight updates: too high and answers get unstable, too low and training is slow. The built-in profiles cap it safely for your device.";
+        if (/(what does|what is)\s*temperature/.test(p)) return "Temperature sets creativity: low values give steady, predictable replies and high values give more varied ones.";
+        if (/(what is|how does).*live memory/.test(p)) return "Live Memory adds new chat turns to the model's retrieval memory instantly, without changing neural weights. Retrain only when you want the neural side to learn permanently.";
+        if (/(import|upload).*(file|data|corpus)|(corpus vault)/.test(p)) return "Corpus Library > Corpus Vault imports .txt, .md, .csv, .json, .jsonl or .tsv files into browser storage. Then select them and press Append selected datasets to Train Studio.";
+        if (/(read my screen|screen (read|ocr)|what does read my screen)/.test(p)) return "Press Read my screen, choose a window or tab, and I extract the visible text with OCR. Then say turn this into training data or add this to my corpus. Screen capture needs https or localhost; otherwise use the image button with a screenshot.";
+        if (/(tips|best practices).*(train|corpus|data)|how (do i|to) (get )?better (results|answers)/.test(p)) return "Use short questions with one clear answer each, run the Pre-flight check to catch duplicates and conflicts, and prefer more varied pairs over repeating the same fact. Then retrain and compare in Evaluation.";
         return '';
       }
 
@@ -4009,6 +4361,7 @@ tell me a joke</textarea>
         document.getElementById('validation-loss-val').innerText = 'N/A';
 
         const activeObj = this.getActiveModelObj();
+        try { this.lastTrainingSnapshot = { modelId: activeObj.id, name: activeObj.name, json: activeObj.engine.toJSON() }; } catch (snapErr) { this.lastTrainingSnapshot = null; }
         const selectedEngineType = document.querySelector('input[name="engine-type"]:checked').value;
 
         if (activeObj.type !== selectedEngineType || fromScratch) {
@@ -4384,7 +4737,7 @@ tell me a joke</textarea>
         const activeObj = this.getActiveModelObj();
         const payload = {
           formatVersion: 2,
-          appVersion: '0.1.75-beta',
+          appVersion: '0.2.0-beta',
           architecture: activeObj.type === 'neural' ? 'tiny-mlp-next-token' : (activeObj.type === 'attention' ? 'tiny-causal-self-attention-plus-ffn' : 'tfidf-ngram-retrieval'),
           exportedAt: new Date().toISOString(),
           trainedOnDevice: true,
@@ -4407,11 +4760,11 @@ tell me a joke</textarea>
           type: m.type,
           data: m.engine.toJSON()
         }));
-        const blob = new Blob([JSON.stringify({ isBundle: true, formatVersion: 2, appVersion: '0.1.75-beta', exportedAt: new Date().toISOString(), trainedOnDevice: true, models: bundle }, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify({ isBundle: true, formatVersion: 2, appVersion: '0.2.0-beta', exportedAt: new Date().toISOString(), trainedOnDevice: true, models: bundle }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'teachable-ai-bundle-0.1.75-beta-' + Date.now() + '.json';
+        a.download = 'teachable-ai-bundle-0.2.0-beta-' + Date.now() + '.json';
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }

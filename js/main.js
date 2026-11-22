@@ -9,9 +9,10 @@ import { AppEval } from './app-eval.js';
 import { AppAssistant } from './app-assistant.js';
 import { AppQATools } from './app-qa-tools.js';
 import { AppScreen } from './app-screen.js';
+import { AppBackup } from './app-backup.js';
 
 // Copy every method from each feature class onto AIApp.
-for (const Mixin of [AppModels, AppStorage, AppChat, AppTraining, AppMemory, AppEval, AppAssistant, AppQATools, AppScreen]) {
+for (const Mixin of [AppModels, AppStorage, AppChat, AppTraining, AppMemory, AppEval, AppAssistant, AppQATools, AppScreen, AppBackup]) {
   for (const name of Object.getOwnPropertyNames(Mixin.prototype)) {
     if (name === 'constructor') continue;
     Object.defineProperty(AIApp.prototype, name, Object.getOwnPropertyDescriptor(Mixin.prototype, name));

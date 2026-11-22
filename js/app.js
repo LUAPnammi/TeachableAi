@@ -70,6 +70,7 @@ export class AIApp {
           this.updateStatsDisplay();
         }
       }
+      this.updateSaveIndicator();
     }).catch(err => console.error('Startup failed:', err));
   }
 
@@ -145,10 +146,7 @@ export class AIApp {
       document.getElementById('train-status-text').innerText = 'Training failed';
       this.showToast('Training failed: ' + (err.message || 'unexpected error'), 'error');
     }));
-    document.getElementById('stop-train-btn').addEventListener('click', () => {
-      this.stopRequested = true;
-      if (this.trainingWorker) this.trainingWorker.postMessage({ type: 'stop' });
-    });
+    document.getElementById('stop-train-btn').addEventListener('click', () => this.requestStopTraining());
     document.getElementById('training-profile').addEventListener('change', () => this.updateTrainingProfileNote());
     this.updateTrainingProfileNote();
     document.getElementById('file-upload').addEventListener('change', (e) => this.handleFileUpload(e));
@@ -183,6 +181,7 @@ export class AIApp {
     document.getElementById('cancel-fact-edit-btn').addEventListener('click', () => this.resetFactEditor());
     this.renderPreferences();
     this.renderKnowledgeFacts();
+    this.initBackupUI();
     this.initAssistantPanel();
     this.initQAGenerator();
     this.initBenchmark();

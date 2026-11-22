@@ -2,17 +2,147 @@
 // Methods here are copied onto AIApp in main.js, so `this` is the app.
 import { CORPUS_LIBRARY } from './corpus-library.js';
 import { HybridNGramEngine, TinyAttentionLM, TinyNeuralLM } from './engines.js';
+import { trainNeural } from './trainer.js';
 
 export class AppTraining {
   updateTrainingProfileNote() {
     const profile = document.getElementById('training-profile')?.value || 'balanced';
     const notes = {
-      phone: 'Phone-safe limits: 240-token vocabulary, 450 examples, 24 hidden units, up to 20 epochs. CPU only; no GPU needed.',
+      phone: 'Phone-safe limits: 240-token vocabulary, 450 examples, 24 hidden units, up to 20 epochs. CPU only; no GPU needed. Trains in a background worker.',
       balanced: 'Balanced limits: 520-token vocabulary, 1,100 examples, 48 hidden units, up to 45 epochs. CPU-first training.',
       large: 'Large CPU limits: 900-token vocabulary, 2,200 examples, 64 hidden units, up to 80 epochs. Avoid this profile on phones.'
     };
     const note = document.getElementById('training-profile-note');
     if (note) note.textContent = notes[profile] || notes.balanced;
+  }
+
+  createEngineForType(type) {
+    return type === 'neural' ? new TinyNeuralLM() : (type === 'attention' ? new TinyAttentionLM() : new HybridNGramEngine());
+  }
+
+  /* ============ Background training (Web Worker with main-thread fallback) ============ */
+
+  // Runs one training job and resolves with its result. Never touches the live model: the caller
+  // applies the result with applyTrainingResult(). opts.primary marks the job the Stop button controls.
+  runTrainingJob(job, onProgress = () => {}, opts = {}) {
+    if (!this.trainingWorkerUnavailable && typeof Worker !== 'undefined') {
+      return this._runInWorker(job, onProgress, opts).catch(err => {
+        if (err && err.workerBoot) {
+          this.trainingWorkerUnavailable = true;
+          console.warn('Training worker unavailable, falling back to the main thread:', err.message);
+          this.showToast('Background training is not available in this browser, so training runs on the main thread instead.');
+          return this._runOnMainThread(job, onProgress, opts);
+        }
+        throw err;
+      });
+    }
+    return this._runOnMainThread(job, onProgress, opts);
+  }
+
+  _runInWorker(job, onProgress, opts) {
+    return new Promise((resolve, reject) => {
+      let worker;
+      try {
+        worker = new Worker(new URL('./train-worker.js', import.meta.url), { type: 'module' });
+      } catch (err) {
+        const e = new Error('Could not start the training worker: ' + (err.message || err));
+        e.workerBoot = true;
+        reject(e);
+        return;
+      }
+      let booted = false, settled = false;
+      if (opts.primary) this.trainingWorker = worker;
+      const finish = (fn, value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(bootTimer);
+        clearTimeout(this._hardStopTimer);
+        try { worker.terminate(); } catch (e) {}
+        if (this.trainingWorker === worker) this.trainingWorker = null;
+        fn(value);
+      };
+      const bootTimer = setTimeout(() => {
+        if (booted) return;
+        const e = new Error('The training worker did not start in time.');
+        e.workerBoot = true;
+        finish(reject, e);
+      }, 15000);
+      // Used by the Stop button if the worker does not answer in time.
+      worker.abortJob = () => finish(resolve, { kind: 'aborted', aborted: true, stopped: true, completed: 0, lossPoints: [] });
+      worker.onmessage = (ev) => {
+        const m = ev.data || {};
+        if (m.type === 'ready') { booted = true; clearTimeout(bootTimer); }
+        else if (m.type === 'progress') { booted = true; try { onProgress(m.info); } catch (e) { console.warn(e); } }
+        else if (m.type === 'done') finish(resolve, m.result);
+        else if (m.type === 'error') finish(reject, new Error(m.message || 'Training failed'));
+      };
+      worker.onerror = (ev) => {
+        if (ev && ev.preventDefault) ev.preventDefault();
+        const e = new Error((ev && ev.message) || 'The training worker crashed.');
+        if (!booted) e.workerBoot = true;
+        finish(reject, e);
+      };
+      worker.postMessage({ type: 'start', job });
+    });
+  }
+
+  async _runOnMainThread(job, onProgress, opts) {
+    const cfg = job.config || {};
+    const shouldStop = () => Boolean(opts.primary && this.stopRequested);
+    if (job.engineType === 'ngram') {
+      const engine = new HybridNGramEngine();
+      await engine.trainAsync(job.text, cfg.indexLimit || 50000, shouldStop);
+      return { kind: 'ngram', stopped: shouldStop(), json: engine.toJSON() };
+    }
+    const engine = job.engineType === 'attention'
+      ? new TinyAttentionLM(cfg.contextSize, cfg.embDim, cfg.hiddenDim)
+      : new TinyNeuralLM(cfg.contextSize, cfg.embDim, cfg.hiddenDim);
+    const outcome = await trainNeural(engine, job.text, cfg, {
+      shouldStop,
+      yieldNow: () => new Promise(resolve => setTimeout(resolve, 0)),
+      yieldEveryMs: 10,
+      onProgress: info => onProgress({ ...info, lossPoints: info.lossPoints.slice() })
+    });
+    return { kind: 'neural', ...outcome, state: engine.exportTrainedState() };
+  }
+
+  // The Stop button: ask the worker to finish its current slice and hand back what it has learned.
+  // If it has not answered after 3 seconds, the worker is terminated and the model stays as it was.
+  requestStopTraining() {
+    if (!this.isTraining) return;
+    this.stopRequested = true;
+    const statusText = document.getElementById('train-status-text');
+    if (statusText) statusText.innerText = 'Stopping…';
+    const worker = this.trainingWorker;
+    if (worker) {
+      worker.postMessage({ type: 'stop' });
+      clearTimeout(this._hardStopTimer);
+      this._hardStopTimer = setTimeout(() => { if (worker.abortJob) worker.abortJob(); }, 3000);
+    }
+  }
+
+  // Copies a finished job's result into the model. Returns false when there is nothing to apply
+  // (job aborted, or stopped before the first epoch finished), in which case the model is unchanged.
+  applyTrainingResult(modelObj, result, text, { freshEngine = false, resetCounters = false, newType = null } = {}) {
+    if (!result || result.aborted) return false;
+    if (result.kind === 'neural' && !(result.completed > 0)) return false;
+    let engine = modelObj.engine;
+    if (freshEngine) {
+      if (newType) modelObj.type = newType;
+      engine = modelObj.engine = this.createEngineForType(modelObj.type);
+    }
+    if (resetCounters) { engine.lossHistory = []; engine.epochsTrained = 0; }
+    if (result.kind === 'neural') {
+      engine.applyTrainedState(result.state);
+      for (const l of result.lossPoints) engine.lossHistory.push(l);
+      engine.epochsTrained = (engine.epochsTrained || 0) + result.completed;
+    } else {
+      engine.fromJSON(result.json);
+    }
+    engine.isTrained = true;
+    engine.rawCorpus = text;
+    if (engine.memory) engine.memory.indexText(text);
+    return true;
   }
 
   async startTraining() {
@@ -44,32 +174,44 @@ export class AppTraining {
     document.getElementById('train-status-text').innerText = fromScratch ? "Training fresh from scratch..." : "Training active model...";
     document.getElementById('validation-loss-val').innerText = 'N/A';
 
-    const activeObj = this.getActiveModelObj();
-    try { this.lastTrainingSnapshot = { modelId: activeObj.id, name: activeObj.name, json: activeObj.engine.toJSON() }; } catch (snapErr) { this.lastTrainingSnapshot = null; }
-    const selectedEngineType = document.querySelector('input[name="engine-type"]:checked').value;
-
-    if (activeObj.type !== selectedEngineType || fromScratch) {
-      activeObj.type = selectedEngineType;
-      activeObj.engine = selectedEngineType === 'neural'
-        ? new TinyNeuralLM()
-        : (selectedEngineType === 'attention' ? new TinyAttentionLM() : new HybridNGramEngine());
+    try {
+      await this._runTrainingFlow(text, fromScratch);
+    } catch (err) {
+      // Make sure the UI never stays locked after a failure, then let the caller report it.
+      this.isTraining = false;
+      this.stopRequested = false;
+      document.getElementById('start-train-btn').disabled = false;
+      document.getElementById('stop-train-btn').disabled = true;
+      document.getElementById('train-status-dot').className = 'w-2 h-2 rounded-full bg-rose-500';
+      document.getElementById('train-status-text').innerText = 'Training failed';
+      throw err;
     }
+  }
+
+  async _runTrainingFlow(text, fromScratch) {
+    const activeObj = this.getActiveModelObj();
+    try { this.lastTrainingSnapshot = { modelId: activeObj.id, name: activeObj.name, json: activeObj.engine.toJSON({ weights: 'f32' }) }; } catch (snapErr) { this.lastTrainingSnapshot = null; }
+    // Train Studio only offers "neural" and "ngram"; an Attention model stays an Attention model.
+    let selectedEngineType = document.querySelector('input[name="engine-type"]:checked').value;
+    if (selectedEngineType === 'neural' && activeObj.type === 'attention') selectedEngineType = 'attention';
+    const swapEngine = activeObj.type !== selectedEngineType || fromScratch;
 
     const epochs = parseInt(document.getElementById('param-epochs').value);
     const baseLr = parseFloat(document.getElementById('param-lr').value);
     const contextSize = parseInt(document.getElementById('param-context').value);
     const hiddenDim = parseInt(document.getElementById('param-hidden').value);
     const augment = document.getElementById('param-augment').checked;
+    const profile = document.getElementById('training-profile').value || 'balanced';
 
-    if (activeObj.type === 'neural' || activeObj.type === 'attention') {
-      const profile = document.getElementById('training-profile').value || 'balanced';
+    let job, config = null;
+    if (selectedEngineType === 'neural' || selectedEngineType === 'attention') {
       const profileLimits = {
         phone: { vocabLimit: 240, maxExamples: 450, hiddenCap: 24, epochCap: 20, profileLabel: 'Phone / low-memory CPU' },
         balanced: { vocabLimit: 520, maxExamples: 1100, hiddenCap: 48, epochCap: 45, profileLabel: 'Balanced CPU' },
         large: { vocabLimit: 900, maxExamples: 2200, hiddenCap: 64, epochCap: 80, profileLabel: 'Large CPU' }
       };
       const limits = profileLimits[profile] || profileLimits.balanced;
-      const config = {
+      config = {
         profile,
         profileLabel: limits.profileLabel,
         epochs: Math.min(epochs, limits.epochCap),
@@ -79,117 +221,66 @@ export class AppTraining {
         embDim: 20,
         vocabLimit: limits.vocabLimit,
         maxExamples: limits.maxExamples,
-        augment
+        augment,
+        validate: true,
+        earlyStop: true,
+        lrFloor: 0.2
       };
       if (config.epochs < epochs) this.showToast(`Profile limited training to ${config.epochs} epochs for device safety.`);
       if (config.hiddenDim < hiddenDim) this.showToast(`Hidden size limited to ${config.hiddenDim} for this hardware profile.`);
       document.getElementById('chart-max-epoch').innerText = 'Epoch ' + config.epochs;
-
-      const lossPoints = [];
-      activeObj.engine.contextSize = config.contextSize;
-      activeObj.engine.hiddenDim = config.hiddenDim;
-      activeObj.engine.embDim = config.embDim;
-
-      const dataset = activeObj.engine.prepareDataset(text, augment, config.maxExamples, config.vocabLimit);
-      if (dataset.X.length > config.maxExamples) {
-        const stride = Math.ceil(dataset.X.length / config.maxExamples);
-        dataset.X = dataset.X.filter((_, i) => i % stride === 0).slice(0, config.maxExamples);
-        dataset.Y = dataset.Y.filter((_, i) => i % stride === 0).slice(0, config.maxExamples);
-      }
-
-      let completed = 0, bestVal = Infinity, patience = 0, bestWeights = null;
-      let valIdx = dataset.X.map((_, i) => i).filter(i => i % 10 === 0);
-      let trainIdx = dataset.X.map((_, i) => i).filter(i => i % 10 !== 0);
-      if (dataset.X.length < 2) valIdx = [];
-      if (trainIdx.length === 0) trainIdx = dataset.X.map((_, i) => i);
-
-      const snapshot = () => ({
-        E: activeObj.engine.E.slice(),
-        W1: activeObj.engine.W1.slice(),
-        b1: activeObj.engine.b1.slice(),
-        W2: activeObj.engine.W2.slice(),
-        b2: activeObj.engine.b2.slice()
-      });
-      const lossForTrainingPreview = () => {
-        let loss = 0;
-        for (const i of trainIdx.slice(0, Math.min(32, trainIdx.length))) {
-          const p = activeObj.engine.forward(dataset.X[i]).probs;
-          loss -= Math.log(Math.max(1e-10, p[dataset.Y[i]]));
-        }
-        return loss / Math.max(1, Math.min(32, trainIdx.length));
-      };
-      const validationLoss = () => {
-        if (!valIdx.length) return lossForTrainingPreview();
-        let loss = 0;
-        for (const i of valIdx) {
-          const p = activeObj.engine.forward(dataset.X[i]).probs;
-          loss -= Math.log(Math.max(1e-10, p[dataset.Y[i]]));
-        }
-        return loss / valIdx.length;
-      };
-
-      for (let epoch = 1; epoch <= config.epochs; epoch++) {
-        if (this.stopRequested) break;
-        let loss = 0;
-        const lr = config.learningRate * (0.2 + 0.8 * 0.5 * (1 + Math.cos(Math.PI * epoch / config.epochs)));
-        for (let n = 0; n < trainIdx.length; n++) {
-          if (this.stopRequested) break;
-          const i = trainIdx[(n * 7919 + epoch * 104729) % trainIdx.length];
-          loss += activeObj.engine.trainStep(dataset.X[i], dataset.Y[i], lr);
-          if (n > 0 && n % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0));
-        }
-        if (this.stopRequested) break;
-        const avg = loss / Math.max(1, trainIdx.length), val = validationLoss();
-        lossPoints.push(avg);
-        activeObj.engine.lossHistory.push(avg);
-        completed++;
-        document.getElementById('train-progress-bar').style.width = (epoch / config.epochs * 100) + '%';
-        document.getElementById('current-loss-val').innerText = avg.toFixed(4);
-        document.getElementById('validation-loss-val').innerText = val.toFixed(4);
-        document.getElementById('train-status-text').innerText = `${config.profileLabel} · epoch ${epoch}/${config.epochs} · replay + val`;
-        this.drawLossChart(lossPoints);
-        if (val < bestVal - 0.0005) {
-          bestVal = val;
-          patience = 0;
-          bestWeights = snapshot();
-        } else {
-          patience++;
-        }
-        if (patience >= 6) {
-          document.getElementById('train-status-text').innerText += ' · early stop';
-          break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 0));
-      }
-
-      if (bestWeights && !this.stopRequested) {
-        Object.assign(activeObj.engine, bestWeights);
-      }
-      activeObj.engine.epochsTrained += completed;
-      activeObj.engine.isTrained = true;
-      activeObj.engine.rawCorpus = text;
+      job = { engineType: selectedEngineType, text, config };
     } else {
-      const profile = document.getElementById('training-profile').value || 'balanced';
       const indexLimit = profile === 'phone' ? 25000 : profile === 'large' ? 100000 : 50000;
-      if (activeObj.engine.trainAsync) await activeObj.engine.trainAsync(text, indexLimit, () => this.stopRequested);
-      else activeObj.engine.train(text.slice(0, indexLimit));
+      job = { engineType: 'ngram', text, config: { indexLimit } };
+    }
+
+    const onProgress = (info) => {
+      document.getElementById('train-progress-bar').style.width = (info.fraction * 100) + '%';
+      if (!info.partial) {
+        document.getElementById('current-loss-val').innerText = info.avg.toFixed(4);
+        document.getElementById('validation-loss-val').innerText = info.val.toFixed(4);
+      }
+      if (!this.stopRequested) {
+        document.getElementById('train-status-text').innerText = `${config.profileLabel} · epoch ${Math.min(info.epoch, config.epochs)}/${config.epochs} · ${this.trainingWorkerUnavailable ? 'main thread' : 'background'}`;
+      }
+      this.drawLossChart(info.lossPoints);
+    };
+
+    const result = await this.runTrainingJob(job, onProgress, { primary: true });
+
+    const applied = this.applyTrainingResult(activeObj, result, text, { freshEngine: swapEngine, newType: selectedEngineType });
+
+    if (result.kind === 'ngram') {
       document.getElementById('train-progress-bar').style.width = this.stopRequested ? '0%' : '100%';
       document.getElementById('current-loss-val').innerText = 'Indexed';
       document.getElementById('validation-loss-val').innerText = 'N/A';
+    } else if (applied) {
+      if (result.lossPoints.length) this.drawLossChart(result.lossPoints);
+      if (result.earlyStopped) document.getElementById('train-status-text').innerText += ' · early stop';
     }
 
-    activeObj.engine.rawCorpus = text;
-    if (activeObj.engine.memory) activeObj.engine.memory.indexText(text);
+    const stopped = this.stopRequested;
     this.isTraining = false;
     document.getElementById('start-train-btn').disabled = false;
     document.getElementById('stop-train-btn').disabled = true;
     document.getElementById('train-status-dot').className = "w-2 h-2 rounded-full bg-emerald-500";
-    document.getElementById('train-status-text').innerText = this.stopRequested ? 'Training stopped safely.' : 'Training complete!';
+    let statusMessage = stopped ? 'Training stopped safely.' : 'Training complete!';
+    let toast = stopped ? 'Training stopped safely; completed progress was saved.' : "Model '" + activeObj.name + "' is trained and ready in Chat Studio.";
+    if (stopped && !applied) {
+      statusMessage = 'Training stopped. Model left unchanged.';
+      toast = 'Training stopped before the first epoch finished, so the model was left as it was.';
+    }
+    document.getElementById('train-status-text').innerText = statusMessage;
+    this.stopRequested = false;
 
-    this.saveModelsToStorage();
-    this.updateStatsDisplay();
-    this.refreshMemoryInspector();
-    this.showToast(this.stopRequested ? 'Training stopped safely; completed progress was saved.' : "Model '" + activeObj.name + "' is trained and ready in Chat Studio.");
+    if (applied) {
+      this.saveModelsToStorage();
+      this.updateStatsDisplay();
+      this.refreshMemoryInspector();
+      if (this.nudgeBackup) this.nudgeBackup();
+    }
+    this.showToast(toast);
   }
 
   drawLossChart(lossPoints) {
@@ -425,6 +516,6 @@ export class AppTraining {
     const text = document.getElementById('training-text').value;
     if (!text.trim()) { this.showToast('There is no corpus to export.', 'error'); return; }
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' }), url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = 'training-corpus-0.2.0-beta.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    a.href = url; a.download = 'training-corpus-0.2.1.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }

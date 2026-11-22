@@ -38,30 +38,34 @@ export class AppModels {
 
   async quickTrainModel(modelObj, text, epochs = 60, fromScratch = false) {
     const cumulativeText = fromScratch ? String(text || '').trim() : this.mergeCorpus(modelObj.engine.rawCorpus, text);
+    let job, jobText = cumulativeText;
     if (modelObj.type === 'neural' || modelObj.type === 'attention') {
-      if (fromScratch) {
-        modelObj.engine.lossHistory = [];
-        modelObj.engine.epochsTrained = 0;
-      }
-      const dataset = modelObj.engine.prepareDataset(cumulativeText, true);
-      for (let ep = 1; ep <= epochs; ep++) {
-        const lr = 0.09 * (0.25 + 0.75 * 0.5 * (1 + Math.cos(Math.PI * ep / epochs)));
-        let epochLoss = 0;
-        for (let i = 0; i < dataset.X.length; i++) {
-          const idx = (i * 7919 + ep * 104729) % Math.max(1, dataset.X.length);
-          epochLoss += modelObj.engine.trainStep(dataset.X[idx], dataset.Y[idx], lr);
-          if (i > 0 && i % 32 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+      const e = modelObj.engine;
+      job = {
+        engineType: modelObj.type,
+        text: cumulativeText,
+        config: {
+          epochs,
+          learningRate: 0.09,
+          lrFloor: 0.25,
+          augment: true,
+          validate: false,
+          earlyStop: false,
+          contextSize: e.contextSize,
+          hiddenDim: e.hiddenDim,
+          embDim: e.embDim
         }
-        modelObj.engine.lossHistory.push(epochLoss / Math.max(1, dataset.X.length));
-        await new Promise(resolve => setTimeout(resolve, 0));
-      }
-      modelObj.engine.epochsTrained += epochs;
-      modelObj.engine.isTrained = true;
-      modelObj.engine.rawCorpus = cumulativeText;
-      modelObj.engine.memory.indexText(cumulativeText);
+      };
     } else {
-      await modelObj.engine.trainAsync(cumulativeText.slice(0, 500000), 500000);
+      jobText = cumulativeText.slice(0, 500000);
+      job = { engineType: 'ngram', text: jobText, config: { indexLimit: 500000 } };
     }
+    // Make the corpus and retrieval memory available right away (as before); the weights follow when the job finishes.
+    modelObj.engine.rawCorpus = cumulativeText;
+    if (modelObj.engine.memory) modelObj.engine.memory.indexText(cumulativeText);
+    // Trains in the background worker; the live model's weights are only replaced once the job finishes.
+    const result = await this.runTrainingJob(job);
+    this.applyTrainingResult(modelObj, result, jobText, { resetCounters: fromScratch });
     this.saveModelsToStorage();
     this.updateStatsDisplay();
   }
@@ -107,7 +111,7 @@ export class AppModels {
     const src = this.models.find(m => m.id === id);
     if (!src) return;
     const copy = this.createNewModel(src.name + ' (Copy)', src.type);
-    copy.engine.fromJSON(src.engine.toJSON());
+    copy.engine.fromJSON(src.engine.toJSON({ weights: 'f32' }));
     this.saveModelsToStorage();
     this.updateStatsDisplay();
     this.showToast('Duplicated ' + src.name + '!');
@@ -267,40 +271,57 @@ export class AppModels {
     this.showToast('Created new model: ' + name);
   }
 
+  // Exports use compact base64 Float32 weights and no pretty-printing: roughly 4-10x smaller than the old files.
+  // Older files (plain number arrays) are still imported by fromJSON().
+  downloadJSON(filename, payload) {
+    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   exportActiveModelJSON() {
     const activeObj = this.getActiveModelObj();
     const payload = {
-      formatVersion: 2,
-      appVersion: '0.2.0-beta',
+      formatVersion: 3,
+      appVersion: '0.2.1',
       architecture: activeObj.type === 'neural' ? 'tiny-mlp-next-token' : (activeObj.type === 'attention' ? 'tiny-causal-self-attention-plus-ffn' : 'tfidf-ngram-retrieval'),
       exportedAt: new Date().toISOString(),
       trainedOnDevice: true,
       name: activeObj.name,
       type: activeObj.type,
-      data: activeObj.engine.toJSON()
+      data: activeObj.engine.toJSON({ weights: 'base64' })
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'model-' + activeObj.name.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') + '.json';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.downloadJSON('model-' + activeObj.name.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') + '.json', payload);
   }
 
-  exportAllModelsBundle() {
+  // Full backup: every model plus the Corpus Vault, response preferences and studio notes.
+  async exportAllModelsBundle() {
+    let corpusDocs = [];
+    try { corpusDocs = await this.getCorpusDocs(); } catch (e) { console.warn('Corpus Vault not included in backup:', e); }
+    let studioKnowledge = '';
+    try { studioKnowledge = localStorage.getItem('teachable_ai_studio_knowledge_v016') || ''; } catch (e) {}
     const bundle = this.models.map(m => ({
       name: m.name,
       type: m.type,
-      data: m.engine.toJSON()
+      createdAt: m.createdAt,
+      knowledgeItems: m.knowledgeItems || [],
+      data: m.engine.toJSON({ weights: 'base64' })
     }));
-    const blob = new Blob([JSON.stringify({ isBundle: true, formatVersion: 2, appVersion: '0.2.0-beta', exportedAt: new Date().toISOString(), trainedOnDevice: true, models: bundle }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'teachable-ai-bundle-0.2.0-beta-' + Date.now() + '.json';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.downloadJSON('teachable-ai-backup-0.2.1-' + new Date().toISOString().slice(0, 10) + '.json', {
+      isBundle: true,
+      formatVersion: 3,
+      appVersion: '0.2.1',
+      exportedAt: new Date().toISOString(),
+      trainedOnDevice: true,
+      models: bundle,
+      extras: { corpusDocs, preferences: this.preferences || {}, studioKnowledge }
+    });
+    if (this.markBackedUp) this.markBackedUp();
+    this.showToast(`Backup downloaded: ${bundle.length} model(s)${corpusDocs.length ? ', ' + corpusDocs.length + ' dataset(s)' : ''}. Keep the file somewhere safe.`);
   }
 
   importJSONFile(e) {
@@ -308,7 +329,7 @@ export class AppModels {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
         const parsed = JSON.parse(evt.target.result);
         if (parsed.isBundle) {
@@ -316,7 +337,9 @@ export class AppModels {
           parsed.models.forEach(item => {
             const newM = this.createNewModel(item.name, item.type);
             newM.engine.fromJSON(item.data);
+            if (Array.isArray(item.knowledgeItems)) newM.knowledgeItems = item.knowledgeItems;
           });
+          await this.importBackupExtras(parsed.extras);
           this.showToast("Imported model bundle!");
         } else if (parsed.type) {
           const newM = this.createNewModel(parsed.name || 'Imported Model', parsed.type);
@@ -326,9 +349,38 @@ export class AppModels {
         this.saveModelsToStorage();
         this.updateStatsDisplay();
       } catch (err) {
+        console.warn('Import failed:', err);
         this.showToast("Invalid JSON file", "error");
       }
+      e.target.value = '';
     };
     reader.readAsText(file);
+  }
+
+  // Restores the non-model parts of a full backup without overwriting anything the user already has.
+  async importBackupExtras(extras) {
+    if (!extras || typeof extras !== 'object') return;
+    try {
+      if (Array.isArray(extras.corpusDocs) && extras.corpusDocs.length) {
+        const existing = new Set((await this.getCorpusDocs()).map(d => d.id));
+        for (const doc of extras.corpusDocs) {
+          if (doc && doc.id && !existing.has(doc.id)) await this.putCorpusDoc(doc);
+        }
+        await this.refreshCorpusVault();
+      }
+      if (extras.preferences && Object.keys(this.preferences || {}).length === 0 && Object.keys(extras.preferences).length) {
+        this.preferences = extras.preferences;
+        localStorage.setItem('teachable_ai_preferences_v6', JSON.stringify(this.preferences));
+        if (this.renderPreferences) this.renderPreferences();
+      }
+      if (extras.studioKnowledge && !localStorage.getItem('teachable_ai_studio_knowledge_v016')) {
+        localStorage.setItem('teachable_ai_studio_knowledge_v016', extras.studioKnowledge);
+        this.studioKnowledge = extras.studioKnowledge;
+        this.renderStudioKnowledgeEditor();
+      }
+    } catch (err) {
+      console.warn('Could not restore everything from the backup:', err);
+      this.showToast('Models were imported, but some extras (datasets/notes) could not be restored.', 'error');
+    }
   }
 }

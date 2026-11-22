@@ -126,8 +126,8 @@ export class AppEval {
 
   exportEvaluation() {
     if (!this.lastEvaluation.length) { this.showToast('Run an evaluation first.', 'error'); return; }
-    const blob = new Blob([JSON.stringify({ appVersion: '0.2.0-beta', results: this.lastEvaluation }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'teachable-ai-evaluation-0.2.0-beta.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const blob = new Blob([JSON.stringify({ appVersion: '0.2.1', results: this.lastEvaluation }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'teachable-ai-evaluation-0.2.1.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   /* ============ Speed benchmark ============ */
@@ -203,7 +203,7 @@ export class AppEval {
           memoryHitPct: rows.filter(r => r.hit).length / rows.length * 100
         });
       }
-      this.lastBench = { appVersion: '0.2.0-beta', ranAt: new Date().toISOString(), prompts, runsPerPrompt: runs, results };
+      this.lastBench = { appVersion: '0.2.1', ranAt: new Date().toISOString(), prompts, runsPerPrompt: runs, results };
       this.renderBenchResults(results);
       status.textContent = `Done · ${results.length} model(s) · ${prompts.length} prompt(s) × ${runs} run(s).`;
     } finally { btn.disabled = false; }
